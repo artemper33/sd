@@ -1,62 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #222222);
+            --hint: var(--tg-theme-hint-color, #999999);
+            --button: var(--tg-theme-button-color, #3390ec);
+            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --secondary: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        }
+
         body {
-            font-family: sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            margin: 0; padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            -webkit-user-select: none;
         }
-        .item {
-            background: var(--tg-theme-secondary-bg-color);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
+
+        h2 { text-align: center; margin-bottom: 20px; }
+
+        /* Сетка товаров */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
-        button {
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            border: none; padding: 10px; border-radius: 8px; cursor: pointer;
+
+        .card {
+            background: var(--secondary);
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.1s;
+        }
+
+        .card:active { transform: scale(0.97); }
+
+        .card img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .title { font-size: 14px; font-weight: 600; margin-bottom: 4px; text-align: center; }
+        .price { color: var(--hint); font-size: 13px; margin-bottom: 10px; }
+
+        .btn {
+            background: var(--button);
+            color: var(--button-text);
+            border: none;
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h2>Наш Магазин</h2>
-    <div id="catalog">
-        <div class="item">
-            <span>Кроссовки (100$)</span>
-            <button onclick="addToCart('Кроссовки', 100)">Купить</button>
+    <h2>Sneaker Shop</h2>
+    <div class="container">
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300">
+            <div class="title">Nike Air Max</div>
+            <div class="price">120 $</div>
+            <button class="btn" onclick="addToCart('Nike Air Max', 120)">Купить</button>
         </div>
-        <div class="item">
-            <span>Футболка (20$)</span>
-            <button onclick="addToCart('Футболка', 20)">Купить</button>
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300">
+            <div class="title">Nike Green</div>
+            <div class="price">95 $</div>
+            <button class="btn" onclick="addToCart('Nike Green', 95)">Купить</button>
+        </div>
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=300">
+            <div class="title">Nike Retro</div>
+            <div class="price">150 $</div>
+            <button class="btn" onclick="addToCart('Nike Retro', 150)">Купить</button>
+        </div>
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300">
+            <div class="title">Casual Tan</div>
+            <div class="price">80 $</div>
+            <button class="btn" onclick="addToCart('Casual Tan', 80)">Купить</button>
         </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Расширяем на все окно
-
+        tg.expand();
+        
         let cart = [];
 
         function addToCart(name, price) {
             cart.push({name, price});
-            // Показываем главную кнопку Telegram
-            tg.MainButton.text = `Оплатить заказ (${cart.length})`;
+            tg.MainButton.text = `В корзине ${cart.length} товара(ов)`;
             tg.MainButton.show();
+            tg.HapticFeedback.impactOccurred('light'); // Вибрация при клике
         }
 
-        // Обработка нажатия на главную кнопку
         tg.onEvent('mainButtonClicked', function(){
             let total = cart.reduce((sum, item) => sum + item.price, 0);
-            tg.sendData(JSON.stringify({items: cart, total: total}));
-            // sendData закрывает мини-апп и шлет данные боту
+            // Отправляем объект с данными
+            tg.sendData(JSON.stringify({
+                order_id: Math.floor(Math.random() * 1000),
+                items: cart.map(i => i.name),
+                total: total
+            }));
         });
     </script>
 </body>
