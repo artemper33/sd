@@ -18,33 +18,50 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 10px;
+            margin: 0; padding: 10px;
             -webkit-user-select: none;
         }
 
-        h2 { text-align: center; margin-bottom: 20px; }
+        .hidden { display: none !important; }
 
-        /* Сетка товаров */
-        .container {
+        /* Стили категорий */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding-top: 10px;
+        }
+
+        .category-card {
+            background: var(--secondary);
+            padding: 20px 10px;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+        }
+
+        /* Стили товаров */
+        .products-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
-        .card {
+        .product-card {
             background: var(--secondary);
             border-radius: 15px;
             padding: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            transition: transform 0.1s;
         }
 
-        .card:active { transform: scale(0.97); }
-
-        .card img {
+        .product-card img {
             width: 100%;
             aspect-ratio: 1/1;
             object-fit: cover;
@@ -52,72 +69,118 @@
             margin-bottom: 8px;
         }
 
-        .title { font-size: 14px; font-weight: 600; margin-bottom: 4px; text-align: center; }
-        .price { color: var(--hint); font-size: 13px; margin-bottom: 10px; }
-
         .btn {
             background: var(--button);
             color: var(--button-text);
             border: none;
-            width: 100%;
             padding: 8px;
             border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
+            margin-top: auto;
         }
+
+        h2 { text-align: center; font-size: 18px; }
     </style>
 </head>
 <body>
-    <h2>Sneaker Shop</h2>
-    <div class="container">
-        <div class="card">
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300">
-            <div class="title">Nike Air Max</div>
-            <div class="price">120 $</div>
-            <button class="btn" onclick="addToCart('Nike Air Max', 120)">Купить</button>
-        </div>
-        <div class="card">
-            <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300">
-            <div class="title">Nike Green</div>
-            <div class="price">95 $</div>
-            <button class="btn" onclick="addToCart('Nike Green', 95)">Купить</button>
-        </div>
-        <div class="card">
-            <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=300">
-            <div class="title">Nike Retro</div>
-            <div class="price">150 $</div>
-            <button class="btn" onclick="addToCart('Nike Retro', 150)">Купить</button>
-        </div>
-        <div class="card">
-            <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300">
-            <div class="title">Casual Tan</div>
-            <div class="price">80 $</div>
-            <button class="btn" onclick="addToCart('Casual Tan', 80)">Купить</button>
-        </div>
+
+    <div id="categories-screen">
+        <h2>Категории</h2>
+        <div class="categories-grid" id="categories-list">
+            </div>
+    </div>
+
+    <div id="products-screen" class="hidden">
+        <h2 id="category-title">Товары</h2>
+        <div class="products-grid" id="products-list">
+            </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        
+
+        // Данные магазина
+        const shopData = {
+            "Косметика для лица": [
+                { name: "Крем с улиткой", price: 500, img: "https://via.placeholder.com/150" },
+                { name: "Сыворотка", price: 750, img: "https://via.placeholder.com/150" }
+            ],
+            "Косметика для тела": [],
+            "Уход за волосами": [],
+            "Натуральное мыло": [],
+            "Тайские зубные пасты": [],
+            "Тайские масла": [],
+            "Тайские бальзамы": [],
+            "Тайская аптека": [],
+            "Товары для детей": [],
+            "Чай": [],
+            "Товары для дома": []
+        };
+
         let cart = [];
+
+        // Рендер списка категорий
+        function initCategories() {
+            const list = document.getElementById('categories-list');
+            Object.keys(shopData).forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'category-card';
+                div.innerText = cat;
+                div.onclick = () => showProducts(cat);
+                list.appendChild(div);
+            });
+        }
+
+        // Показ товаров выбранной категории
+        function showProducts(category) {
+            document.getElementById('categories-screen').classList.add('hidden');
+            document.getElementById('products-screen').classList.remove('hidden');
+            document.getElementById('category-title').innerText = category;
+            
+            const list = document.getElementById('products-list');
+            list.innerHTML = ''; // Очистка
+
+            const products = shopData[category];
+            if (products.length === 0) {
+                list.innerHTML = '<p style="grid-column: 1/3; text-align:center;">Скоро в продаже...</p>';
+            } else {
+                products.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <img src="${p.img}">
+                        <div style="font-weight:bold; margin-bottom:5px;">${p.name}</div>
+                        <div style="color:var(--hint); margin-bottom:8px;">${p.price} ₽</div>
+                        <button class="btn" onclick="addToCart('${p.name}', ${p.price})">Купить</button>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+
+            tg.BackButton.show();
+        }
+
+        // Логика кнопки "Назад"
+        tg.onEvent('backButtonClicked', () => {
+            document.getElementById('products-screen').classList.add('hidden');
+            document.getElementById('categories-screen').classList.remove('hidden');
+            tg.BackButton.hide();
+        });
 
         function addToCart(name, price) {
             cart.push({name, price});
             tg.MainButton.text = `В корзине ${cart.length} товара(ов)`;
             tg.MainButton.show();
-            tg.HapticFeedback.impactOccurred('light'); // Вибрация при клике
+            tg.HapticFeedback.impactOccurred('light');
         }
 
-        tg.onEvent('mainButtonClicked', function(){
-            let total = cart.reduce((sum, item) => sum + item.price, 0);
-            // Отправляем объект с данными
-            tg.sendData(JSON.stringify({
-                order_id: Math.floor(Math.random() * 1000),
-                items: cart.map(i => i.name),
-                total: total
-            }));
+        tg.onEvent('mainButtonClicked', () => {
+            let total = cart.reduce((s, i) => s + i.price, 0);
+            tg.sendData(JSON.stringify({items: cart, total: total}));
         });
+
+        initCategories();
     </script>
 </body>
 </html>
