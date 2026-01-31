@@ -22,43 +22,16 @@
 
         .hidden { display: none !important; }
 
-        /* Сетка категорий с фото */
+        /* Сетка категорий */
         .categories-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        
         .category-card {
-            position: relative;
-            height: 120px;
-            border-radius: 15px;
-            overflow: hidden;
-            display: flex;
-            align-items: flex-end;
-            cursor: pointer;
+            position: relative; height: 120px; border-radius: 15px; overflow: hidden;
+            display: flex; align-items: flex-end; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
-        .category-card img {
-            position: absolute;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: 1;
-        }
-
-        .category-overlay {
-            position: absolute;
-            width: 100%; height: 100%;
-            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
-            z-index: 2;
-        }
-
-        .category-name {
-            position: relative;
-            z-index: 3;
-            color: white;
-            padding: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            line-height: 1.2;
-        }
+        .category-card img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .category-overlay { position: absolute; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%); z-index: 2; }
+        .category-name { position: relative; z-index: 3; color: white; padding: 10px; font-size: 13px; font-weight: 600; }
 
         /* Товары */
         .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -66,20 +39,20 @@
         .product-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
 
         /* Корзина */
-        .cart-item {
-            background: var(--secondary); border-radius: 12px; padding: 12px;
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
-        }
+        .cart-item { background: var(--secondary); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .quantity-controls { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 5px; border-radius: 8px; }
         .q-btn { background: var(--button); color: var(--button-text); border: none; width: 25px; height: 25px; border-radius: 5px; font-weight: bold; }
         .btn { background: var(--button); color: var(--button-text); border: none; padding: 10px; border-radius: 8px; font-weight: bold; width: 100%; }
         
         h2 { text-align: left; font-size: 22px; margin: 10px 0 20px 5px; }
+        #loader { text-align: center; margin-top: 50px; font-weight: bold; color: var(--hint); }
     </style>
 </head>
 <body>
 
-    <div id="screen-categories">
+    <div id="loader">Загрузка товаров...</div>
+
+    <div id="screen-categories" class="hidden">
         <h2>Категории</h2>
         <div class="categories-grid" id="cat-list"></div>
     </div>
@@ -92,7 +65,7 @@
     <div id="screen-cart" class="hidden">
         <h2>Корзина</h2>
         <div id="cart-list"></div>
-        <div id="cart-empty" style="text-align: center; color: var(--hint); margin-top: 20px;">Тут пока пусто</div>
+        <div id="cart-empty" style="text-align: center; color: var(--hint); margin-top: 20px;">Корзина пуста</div>
         <div id="cart-total" style="text-align: right; font-weight: bold; margin-top: 20px; font-size: 18px; padding: 10px;"></div>
     </div>
 
@@ -102,57 +75,47 @@
 
         let cart = {};
         let currentScreen = 'categories';
+        let shopData = {};
 
-        // ДАННЫЕ С КАРТИНКАМИ КАТЕГОРИЙ
-        const shopData = {
-            "Косметика для лица": {
-                img: "https://тайшоп.рф/upload/shop_14/8/4/6/group_846/small_group_846.png",
-                items: [{ name: "Крем Snail", price: 850, img: "https://via.placeholder.com/300" }]
-            },
-            "Косметика для тела": {
-                img: "https://тайшоп.рф/upload/shop_14/8/5/2/group_852/small_group_852.png",
-                items: [{ name: "Лосьон Кокос", price: 600, img: "https://via.placeholder.com/300" }]
-            },
-            "Уход за волосами": {
-                img: "https://тайшоп.рф/upload/shop_14/8/5/7/group_857/small_group_857.png",
-                items: [{ name: "Шампунь", price: 700, img: "https://via.placeholder.com/300" }]
-            },
-            "Натуральное мыло": {
-                img: "https://images.unsplash.com/photo-1607006344380-b6775a0824a7?w=300",
-                items: [{ name: "Мыло Манго", price: 250, img: "https://via.placeholder.com/300" }]
-            },
-            "Тайские зубные пасты": {
-                img: "https://images.unsplash.com/photo-1559594482-e824889547b9?w=300",
-                items: [{ name: "Паста 5Star", price: 300, img: "https://via.placeholder.com/300" }]
-            },
-            "Тайские масла": {
-                img: "https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=300",
-                items: [{ name: "Масло 100%", price: 900, img: "https://via.placeholder.com/300" }]
-            },
-            "Тайские бальзамы": {
-                img: "https://images.unsplash.com/photo-1628231088296-3091aad0e743?w=300",
-                items: [{ name: "Бальзам Тигр", price: 450, img: "https://via.placeholder.com/300" }]
-            },
-            "Тайская аптека": {
-                img: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300",
-                items: [{ name: "Капсулы", price: 550, img: "https://via.placeholder.com/300" }]
-            },
-            "Товары для детей": {
-                img: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=300",
-                items: [{ name: "Присыпка", price: 400, img: "https://via.placeholder.com/300" }]
-            },
-            "Чай": {
-                img: "https://images.unsplash.com/photo-1594631252845-29fc4586bc5c?w=300",
-                items: [{ name: "Чай Анчан", price: 350, img: "https://via.placeholder.com/300" }]
-            },
-            "Товары для дома": {
-                img: "https://images.unsplash.com/photo-1602928321679-560bb453f190?w=300",
-                items: [{ name: "Палочки", price: 200, img: "https://via.placeholder.com/300" }]
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
+
+        async function loadData() {
+            try {
+                const response = await fetch(SHEET_URL);
+                const csvText = await response.text();
+                const rows = csvText.split('\n').slice(1);
+
+                rows.forEach(row => {
+                    const columns = row.split(',');
+                    if (columns.length < 4) return;
+
+                    const category = columns[0].trim();
+                    const name = columns[1].trim();
+                    const price = parseInt(columns[2].trim());
+                    const image = columns[3].trim();
+                    const cat_image = columns[4] ? columns[4].trim() : 'img/default_cat.jpg';
+
+                    if (!shopData[category]) {
+                        shopData[category] = {
+                            img: cat_image,
+                            items: []
+                        };
+                    }
+                    shopData[category].items.push({ name, price, img: image });
+                });
+
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('screen-categories').classList.remove('hidden');
+                initCategories();
+            } catch (e) {
+                document.getElementById('loader').innerText = "Ошибка загрузки. Проверьте интернет.";
+                console.error(e);
             }
-        };
+        }
 
-        function init() {
+        function initCategories() {
             const list = document.getElementById('cat-list');
+            list.innerHTML = '';
             Object.entries(shopData).forEach(([name, data]) => {
                 const div = document.createElement('div');
                 div.className = 'category-card';
@@ -171,6 +134,7 @@
             document.getElementById('screen-categories').classList.add('hidden');
             document.getElementById('screen-products').classList.remove('hidden');
             document.getElementById('cat-title').innerText = cat;
+            
             const list = document.getElementById('prod-list');
             list.innerHTML = '';
             shopData[cat].items.forEach(p => {
@@ -194,7 +158,7 @@
             
             let totalItems = Object.values(cart).reduce((sum, item) => sum + item.count, 0);
             if (totalItems > 0) {
-                tg.MainButton.text = `Корзина: ${totalItems}`;
+                tg.MainButton.text = `В корзине: ${totalItems}`;
                 tg.MainButton.show();
             } else {
                 tg.MainButton.hide();
@@ -208,6 +172,7 @@
             document.getElementById('screen-categories').classList.add('hidden');
             document.getElementById('screen-products').classList.add('hidden');
             document.getElementById('screen-cart').classList.remove('hidden');
+            
             const list = document.getElementById('cart-list');
             list.innerHTML = '';
             let totalSum = 0;
@@ -225,6 +190,7 @@
                 `;
                 list.appendChild(div);
             });
+
             document.getElementById('cart-total').innerText = `Итого: ${totalSum} ₽`;
             document.getElementById('cart-empty').classList.toggle('hidden', Object.keys(cart).length > 0);
             tg.MainButton.text = "ОФОРМИТЬ ЗАКАЗ";
@@ -232,16 +198,15 @@
         }
 
         function goBack() {
-            if (currentScreen === 'cart' || currentScreen === 'products') {
-                document.getElementById('screen-cart').classList.add('hidden');
-                document.getElementById('screen-products').classList.add('hidden');
-                document.getElementById('screen-categories').classList.remove('hidden');
-                currentScreen = 'categories';
-                if (Object.keys(cart).length > 0) {
-                    tg.MainButton.text = `Корзина: ${Object.values(cart).reduce((s,i)=>s+i.count,0)}`;
-                    tg.MainButton.show();
-                }
-                tg.BackButton.hide();
+            document.getElementById('screen-cart').classList.add('hidden');
+            document.getElementById('screen-products').classList.add('hidden');
+            document.getElementById('screen-categories').classList.remove('hidden');
+            currentScreen = 'categories';
+            tg.BackButton.hide();
+            let totalItems = Object.values(cart).reduce((sum, item) => sum + item.count, 0);
+            if (totalItems > 0) {
+                tg.MainButton.text = `В корзине: ${totalItems}`;
+                tg.MainButton.show();
             }
         }
 
@@ -251,8 +216,7 @@
             else tg.sendData(JSON.stringify(cart));
         });
 
-        init();
+        loadData();
     </script>
 </body>
 </html>
-
