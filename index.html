@@ -22,35 +22,44 @@
 
         .hidden { display: none !important; }
 
-        /* Стили сеток */
-        .categories-grid, .products-grid {
+        /* Категории (плитка) */
+        .categories-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
 
-        .category-card, .product-card, .cart-item {
-            background: var(--secondary); border-radius: 12px; padding: 12px;
+        .category-card {
+            background: var(--secondary); border-radius: 15px; padding: 20px 10px;
+            text-align: center; font-weight: 600; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; min-height: 50px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .product-card img { width: 100%; border-radius: 8px; margin-bottom: 8px; }
+        /* Товары */
+        .products-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
 
-        /* Стили корзины */
+        .product-card {
+            background: var(--secondary); border-radius: 15px; padding: 10px;
+            display: flex; flex-direction: column;
+        }
+
+        .product-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
+
+        /* Корзина */
         .cart-item {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px;
+            background: var(--secondary); border-radius: 12px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
         }
         
-        .remove-btn {
-            background: #ff4d4d; color: white; border: none;
-            padding: 5px 10px; border-radius: 6px; font-size: 12px;
-        }
+        .remove-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 6px; }
 
         .btn {
             background: var(--button); color: var(--button-text);
-            border: none; padding: 10px; border-radius: 8px;
-            font-weight: bold; width: 100%; cursor: pointer;
+            border: none; padding: 10px; border-radius: 8px; font-weight: bold; width: 100%;
         }
 
-        h2 { text-align: center; font-size: 20px; }
+        h2 { text-align: center; font-size: 18px; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -68,8 +77,8 @@
     <div id="screen-cart" class="hidden">
         <h2>Ваша корзина</h2>
         <div id="cart-list"></div>
-        <div id="cart-empty" style="text-align: center; color: var(--hint);">Корзина пуста</div>
-        <div id="cart-total" style="text-align: right; font-weight: bold; margin-top: 15px; font-size: 18px;"></div>
+        <div id="cart-empty" style="text-align: center; color: var(--hint); margin-top: 20px;">Корзина пуста</div>
+        <div id="cart-total" style="text-align: right; font-weight: bold; margin-top: 20px; font-size: 18px; padding: 10px;"></div>
     </div>
 
     <script>
@@ -79,15 +88,21 @@
         let cart = [];
         let currentScreen = 'categories';
 
+        // ТВОИ КАТЕГОРИИ
         const shopData = {
             "Косметика для лица": [
-                { id: 1, name: "Крем с улиткой", price: 500, img: "https://via.placeholder.com/150" },
-                { id: 2, name: "Сыворотка", price: 750, img: "https://via.placeholder.com/150" }
+                { name: "Тайский крем", price: 850, img: "https://via.placeholder.com/300" }
             ],
-            "Чай": [
-                { id: 3, name: "Синий чай Анчан", price: 400, img: "https://via.placeholder.com/150" }
-            ]
-            // Добавь остальные категории аналогично
+            "Косметика для тела": [],
+            "Уход за волосами": [],
+            "Натуральное мыло": [],
+            "Тайские зубные пасты": [],
+            "Тайские масла": [],
+            "Тайские бальзамы": [],
+            "Тайская аптека": [],
+            "Товары для детей": [],
+            "Чай": [],
+            "Товары для дома": []
         };
 
         function init() {
@@ -95,7 +110,7 @@
             Object.keys(shopData).forEach(cat => {
                 const div = document.createElement('div');
                 div.className = 'category-card';
-                div.innerHTML = `<div style="text-align:center">${cat}</div>`;
+                div.innerText = cat;
                 div.onclick = () => showProducts(cat);
                 list.appendChild(div);
             });
@@ -110,17 +125,22 @@
             const list = document.getElementById('prod-list');
             list.innerHTML = '';
             
-            (shopData[cat] || []).forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'product-card';
-                div.innerHTML = `
-                    <img src="${p.img}">
-                    <div style="font-weight:bold">${p.name}</div>
-                    <div style="color:var(--hint)">${p.price} ₽</div>
-                    <button class="btn" onclick="addToCart('${p.name}', ${p.price})">Купить</button>
-                `;
-                list.appendChild(div);
-            });
+            let products = shopData[cat] || [];
+            if (products.length === 0) {
+                list.innerHTML = '<p style="grid-column: 1/3; text-align:center; padding: 20px;">В этой категории пока нет товаров</p>';
+            } else {
+                products.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.innerHTML = `
+                        <img src="${p.img}">
+                        <div style="font-weight:bold; font-size: 14px;">${p.name}</div>
+                        <div style="color:var(--hint); margin-bottom: 8px;">${p.price} ₽</div>
+                        <button class="btn" onclick="addToCart('${p.name}', ${p.price})">Купить</button>
+                    `;
+                    list.appendChild(div);
+                });
+            }
             tg.BackButton.show();
         }
 
@@ -139,8 +159,8 @@
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
-                    <span>${item.name} (${item.price}₽)</span>
-                    <button class="remove-btn" onclick="removeFromCart(${index})">❌</button>
+                    <div style="font-size: 14px;">${item.name}<br><small style="color:var(--hint)">${item.price} ₽</small></div>
+                    <button class="remove-btn" onclick="removeFromCart(${index})">Удалить</button>
                 `;
                 list.appendChild(div);
             });
@@ -154,28 +174,28 @@
 
         function addToCart(name, price) {
             cart.push({name, price});
-            tg.MainButton.text = `Посмотреть корзину (${cart.length})`;
+            tg.MainButton.text = `В корзине ${cart.length} товаров`;
             tg.MainButton.show();
-            tg.HapticFeedback.impactOccurred('light');
+            tg.HapticFeedback.impactOccurred('medium');
         }
 
         function removeFromCart(index) {
             cart.splice(index, 1);
-            showCart();
             if (cart.length === 0) {
                 tg.MainButton.hide();
                 goBack();
+            } else {
+                showCart();
             }
         }
 
         function goBack() {
             if (currentScreen === 'cart') {
-                // Если мы в корзине, возвращаемся в категории (или можно в товары)
                 document.getElementById('screen-cart').classList.add('hidden');
                 document.getElementById('screen-categories').classList.remove('hidden');
                 currentScreen = 'categories';
                 if (cart.length > 0) {
-                    tg.MainButton.text = `Посмотреть корзину (${cart.length})`;
+                    tg.MainButton.text = `В корзине ${cart.length} товаров`;
                     tg.MainButton.show();
                 }
                 tg.BackButton.hide();
@@ -188,14 +208,9 @@
         }
 
         tg.onEvent('backButtonClicked', goBack);
-
         tg.onEvent('mainButtonClicked', () => {
-            if (currentScreen !== 'cart') {
-                showCart();
-            } else {
-                let total = cart.reduce((s, i) => s + i.price, 0);
-                tg.sendData(JSON.stringify({items: cart, total: total}));
-            }
+            if (currentScreen !== 'cart') showCart();
+            else tg.sendData(JSON.stringify({items: cart, total: cart.reduce((s,i)=>s+i.price, 0)}));
         });
 
         init();
