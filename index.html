@@ -25,17 +25,13 @@
         .container { padding: 15px; min-height: 100vh; box-sizing: border-box; }
         .hidden { display: none; }
 
-        /* Шапки и заголовки */
         h2 { margin-top: 0; font-size: 22px; }
         .back-btn {
             border: none; background: none; color: var(--button-color);
             padding: 0; margin-bottom: 15px; font-size: 16px; cursor: pointer;
         }
 
-        /* Категории */
-        .categories-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
+        .categories-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .category-card {
             background: var(--secondary-bg); border-radius: 12px; padding: 15px;
             text-align: center; cursor: pointer; transition: transform 0.1s;
@@ -43,16 +39,13 @@
         .category-card:active { transform: scale(0.97); }
         .category-card img { width: 60px; height: 60px; object-fit: contain; }
 
-        /* Товары */
-        .products-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
+        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .product-card {
             background: var(--secondary-bg); border-radius: 12px; padding: 10px;
             text-align: center; display: flex; flex-direction: column; justify-content: space-between;
         }
         .product-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
-        .product-title { font-size: 14px; margin: 8px 0; height: 34px; overflow: hidden; }
+        .product-title { font-size: 14px; margin: 8px 0; height: 42px; overflow: hidden; line-height: 1.2; }
         .price { font-weight: bold; color: var(--button-color); margin-bottom: 8px; }
         
         .btn-add {
@@ -60,7 +53,6 @@
             padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer;
         }
 
-        /* Корзина */
         .cart-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 0; border-bottom: 1px solid #eee;
@@ -71,7 +63,6 @@
             border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 18px;
         }
 
-        /* Форма оформления */
         .order-form {
             background: var(--secondary-bg); border-radius: 12px; padding: 15px; margin-top: 10px;
         }
@@ -89,7 +80,7 @@
 </div>
 
 <div class="container hidden" id="screen-products">
-    <button class="back-btn" onclick="showCategories()">← Назад к категориями</button>
+    <button class="back-btn" onclick="showCategories()">← Назад к категориям</button>
     <h2 id="category-title">Товары</h2>
     <div id="products-list" class="products-grid"></div>
 </div>
@@ -104,7 +95,7 @@
 <div class="container hidden" id="screen-checkout">
     <button class="back-btn" onclick="showCart()">← Вернуться в корзину</button>
     <h2>Данные для доставки</h2>
-    <p style="color: var(--hint-color); font-size: 14px;">Пожалуйста, заполните поля ниже, чтобы мы могли доставить ваш заказ.</p>
+    <p style="color: var(--hint-color); font-size: 14px;">Заполните данные, чтобы мы могли доставить ваш заказ.</p>
     <div class="order-form">
         <input type="text" id="user-fio" placeholder="Ваше полное имя (ФИО)">
         <input type="tel" id="user-phone" placeholder="Номер телефона">
@@ -116,7 +107,6 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
 
-    // ЗАМЕНИ ССЫЛКУ НИЖЕ НА СВОЮ (CSV формат!)
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
 
     let allProducts = [];
@@ -124,48 +114,68 @@
     let currentScreen = 'categories';
     let lastCategory = '';
 
+    // Сохранение и загрузка корзины
+    function saveCart() { localStorage.setItem('thai_cart', JSON.stringify(cart)); }
+    function loadCartFromStorage() {
+        const saved = localStorage.getItem('thai_cart');
+        if (saved) { cart = JSON.parse(saved); updateMainButton(); }
+    }
+
     async function loadData() {
         try {
             const response = await fetch(SHEET_URL);
             const data = await response.text();
-            
-            // Разбиваем на строки, убираем пустые
-            const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0).slice(1);
-            
+            const rows = data.split('\n').map(r => r.trim()).filter(r => r.length > 0).slice(1);
+
+            const categoriesList = [
+                "Косметика для лица", "Натуральное мыло", "Уход за волосами", "Тайская аптека", 
+                "Косметика для тела", "Тайские бальзамы", "Крема и лосьоны для тела", 
+                "Дезодоранты, тальк и присыпки для тела", "Шампуни и кондиционеры для волос", 
+                "Скрабы и гели для душа", "Маски для волос", "Товары для детей", "Крема для лица", 
+                "Женские секреты", "Товары для дома", "Тайские масла", "Тайские зубные пасты", 
+                "Для кожи вокруг глаз", "Для рук и ног", "Для проблемной кожи"
+            ];
+
             allProducts = rows.map(row => {
-                // УМНОЕ РАЗДЕЛЕНИЕ: игнорируем запятые внутри кавычек
-                const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                
-                // Очищаем данные от лишних кавычек, которые добавляет CSV
-                const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : '';
+                // Извлекаем цену в конце строки (например, 600.00)
+                const priceMatch = row.match(/(\d+\.\d{2})$/);
+                const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                let remaining = priceMatch ? row.slice(0, priceMatch.index).trim() : row;
+
+                let foundCat = "Общее";
+                let foundName = remaining;
+
+                for (let cat of categoriesList) {
+                    if (remaining.startsWith(cat)) {
+                        foundCat = cat;
+                        foundName = remaining.replace(cat, "").trim();
+                        break;
+                    }
+                }
 
                 return {
-                    cat: clean(cols[0]),
-                    name: clean(cols[1]),
-                    price: parseInt(clean(cols[2])) || 0,
-                    img: clean(cols[3]),
-                    cat_img: clean(cols[4])
+                    cat: foundCat,
+                    name: foundName,
+                    price: Math.round(price),
+                    img: "https://via.placeholder.com/150" 
                 };
             }).filter(p => p.name && p.price > 0);
 
             renderCategories();
-        } catch (e) { 
-            console.error("Ошибка загрузки:", e); 
-        }
+            loadCartFromStorage();
+        } catch (e) { console.error("Ошибка:", e); }
     }
 
     function renderCategories() {
         const list = document.getElementById('categories-list');
         const cats = [...new Set(allProducts.map(p => p.cat))];
         list.innerHTML = '';
-        
         cats.forEach(cat => {
-            const p = allProducts.find(item => item.cat === cat);
             const card = document.createElement('div');
             card.className = 'category-card';
             card.onclick = () => showProducts(cat);
             card.innerHTML = `
-                <img src="${p.cat_img || 'img/cat-default.png'}" onerror="this.src='https://via.placeholder.com/60'">
+                <div style="font-size: 30px;">📦</div>
                 <div style="margin-top:8px; font-weight:bold; font-size: 14px;">${cat}</div>
             `;
             list.appendChild(card);
@@ -177,18 +187,16 @@
         lastCategory = cat;
         switchScreen('screen-products');
         document.getElementById('category-title').innerText = cat;
-        
         const list = document.getElementById('products-list');
         list.innerHTML = '';
-        
         allProducts.filter(p => p.cat === cat).forEach(p => {
             const card = document.createElement('div');
             card.className = 'product-card';
             card.innerHTML = `
-                <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150'">
+                <img src="${p.img}">
                 <div class="product-title">${p.name}</div>
                 <div class="price">${p.price} ₽</div>
-                <button class="btn-add" onclick="changeQty('${p.name}', 1, ${p.price})">В корзину</button>
+                <button class="btn-add" onclick="changeQty('${p.name.replace(/'/g, "\\'")}', 1, ${p.price})">В корзину</button>
             `;
             list.appendChild(card);
         });
@@ -196,13 +204,9 @@
     }
 
     function changeQty(name, delta, price) {
-        if (!cart[name]) {
-            if (delta > 0) cart[name] = { price: price, count: delta };
-        } else {
-            cart[name].count += delta;
-            if (cart[name].count <= 0) delete cart[name];
-        }
-        
+        if (!cart[name]) { if (delta > 0) cart[name] = { price: price, count: delta }; }
+        else { cart[name].count += delta; if (cart[name].count <= 0) delete cart[name]; }
+        saveCart();
         if (currentScreen === 'cart') renderCartItems();
         updateMainButton();
     }
@@ -210,73 +214,40 @@
     function updateMainButton() {
         const count = Object.values(cart).reduce((a, b) => a + b.count, 0);
         if (count > 0) {
-            if (currentScreen === 'cart') {
-                tg.MainButton.setText("ОФОРМИТЬ ДОСТАВКУ");
-            } else if (currentScreen === 'checkout') {
-                tg.MainButton.setText("ПОДТВЕРДИТЬ ЗАКАЗ");
-            } else {
-                tg.MainButton.setText(`ПЕРЕЙТИ В КОРЗИНУ (${count})`);
-            }
+            if (currentScreen === 'cart') tg.MainButton.setText("ОФОРМИТЬ ДОСТАВКУ");
+            else if (currentScreen === 'checkout') tg.MainButton.setText("ПОДТВЕРДИТЬ ЗАКАЗ");
+            else tg.MainButton.setText(`КОРЗИНА (${count})`);
             tg.MainButton.show();
-        } else {
-            tg.MainButton.hide();
-        }
+        } else { tg.MainButton.hide(); }
     }
 
     function renderCartItems() {
         const list = document.getElementById('cart-items');
         list.innerHTML = '';
         let total = 0;
-
-        const items = Object.entries(cart);
-        if (items.length === 0) {
-            list.innerHTML = '<p style="color:var(--hint-color);">Корзина пуста</p>';
-        }
-
-        for (const [name, info] of items) {
+        Object.entries(cart).forEach(([name, info]) => {
             const sum = info.price * info.count;
             total += sum;
             list.innerHTML += `
                 <div class="cart-item">
-                    <div style="flex:1; padding-right:10px;">
+                    <div style="flex:1;">
                         <div style="font-weight:bold; font-size:14px;">${name}</div>
                         <div style="color:var(--button-color); font-size:13px;">${info.price} ₽</div>
                     </div>
                     <div class="qty-controls">
-                        <button class="btn-qty" onclick="changeQty('${name}', -1, ${info.price})">-</button>
-                        <span style="min-width:20px; text-align:center; font-weight:bold;">${info.count}</span>
-                        <button class="btn-qty" onclick="changeQty('${name}', 1, ${info.price})">+</button>
+                        <button class="btn-qty" onclick="changeQty('${name.replace(/'/g, "\\'")}', -1, ${info.price})">-</button>
+                        <span>${info.count}</span>
+                        <button class="btn-qty" onclick="changeQty('${name.replace(/'/g, "\\'")}', 1, ${info.price})">+</button>
                     </div>
-                </div>
-            `;
-        }
+                </div>`;
+        });
         document.getElementById('cart-total-price').innerText = `Итого: ${total} ₽`;
     }
 
-    function showCart() {
-        currentScreen = 'cart';
-        switchScreen('screen-cart');
-        renderCartItems();
-        updateMainButton();
-    }
-
-    function showCheckout() {
-        currentScreen = 'checkout';
-        switchScreen('screen-checkout');
-        updateMainButton();
-    }
-
-    function showCategories() {
-        currentScreen = 'categories';
-        switchScreen('screen-categories');
-        updateMainButton();
-    }
-
-    function goBackFromCart() {
-        if (lastCategory) showProducts(lastCategory);
-        else showCategories();
-    }
-
+    function showCart() { currentScreen = 'cart'; switchScreen('screen-cart'); renderCartItems(); updateMainButton(); }
+    function showCheckout() { currentScreen = 'checkout'; switchScreen('screen-checkout'); updateMainButton(); }
+    function showCategories() { currentScreen = 'categories'; switchScreen('screen-categories'); updateMainButton(); }
+    function goBackFromCart() { if (lastCategory) showProducts(lastCategory); else showCategories(); }
     function switchScreen(id) {
         document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
@@ -284,30 +255,18 @@
     }
 
     tg.onEvent('mainButtonClicked', () => {
-        if (currentScreen === 'categories' || currentScreen === 'products') {
-            showCart();
-        } else if (currentScreen === 'cart') {
-            showCheckout();
-        } else if (currentScreen === 'checkout') {
+        if (currentScreen === 'cart') showCheckout();
+        else if (currentScreen === 'checkout') {
             const fio = document.getElementById('user-fio').value;
             const phone = document.getElementById('user-phone').value;
             const address = document.getElementById('user-address').value;
-
-            if (!fio || !phone || !address) {
-                tg.showAlert("Пожалуйста, заполните все данные для доставки!");
-                return;
-            }
-
-            const data = {
-                products: cart,
-                customer: { fio, phone, address }
-            };
-            tg.sendData(JSON.stringify(data));
-        }
+            if (!fio || !phone || !address) { tg.showAlert("Заполните все поля!"); return; }
+            tg.sendData(JSON.stringify({ cart, customer: { fio, phone, address } }));
+            localStorage.removeItem('thai_cart');
+        } else { showCart(); }
     });
 
     loadData();
 </script>
 </body>
 </html>
-
