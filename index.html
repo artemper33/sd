@@ -8,24 +8,31 @@
     <style>
         :root {
             --bg-color: #f4f1ee; --card-bg: #ffffff; --text-main: #1a1a1a;
-            --accent-green: #4b6a51; --radius: 30px; --shadow: 0 10px 25px rgba(0,0,0,0.05);
+            --accent-green: #4b6a51; --accent-light: #e8f0e9; --radius: 30px; --shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 0; }
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 0; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; }
         .hidden { display: none !important; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: white; border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); position: relative; }
-        .image-wrapper { width: 100%; aspect-ratio: 1/1; background: #f1f1f1; border-radius: 20px; overflow: hidden; margin-bottom: 10px; }
+        .card { background: white; border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); cursor: pointer; display: flex; flex-direction: column; }
+        .image-wrapper { width: 100%; aspect-ratio: 1/1; background: #f8f8f8; border-radius: 20px; overflow: hidden; margin-bottom: 10px; }
         .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .title { font-size: 14px; font-weight: 600; height: 36px; overflow: hidden; margin-bottom: 8px; }
-        .price { font-weight: 700; font-size: 16px; }
-        .btn-add { background: var(--accent-green); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; float: right; cursor: pointer; }
-        .back-btn { cursor: pointer; color: var(--accent-green); margin-bottom: 15px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; }
-        .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; background: white; padding: 10px; border-radius: 15px; }
+        .title { font-size: 14px; font-weight: 600; line-height: 1.3; height: 36px; overflow: hidden; }
+        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .btn-add { background: var(--accent-green); color: white; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+        
+        /* Стили корзины */
+        .cart-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+        .qty-controls { display: flex; align-items: center; gap: 10px; background: var(--accent-light); padding: 5px; border-radius: 12px; }
+        .btn-qty { background: white; border: none; width: 28px; height: 28px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .back-btn { color: var(--accent-green); font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+        input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        #total-sum { text-align: right; font-size: 20px; font-weight: bold; color: var(--accent-green); margin-top: 15px; }
     </style>
 </head>
 <body>
+
     <div id="screen-cats" class="container">
         <h2>Каталог</h2>
         <div id="cats-list" class="grid"></div>
@@ -38,14 +45,18 @@
     </div>
 
     <div id="screen-cart" class="container hidden">
-        <div class="back-btn" onclick="showScreen('screen-prods')">← В магазин</div>
+        <div class="back-btn" onclick="goBackFromCart()">← В магазин</div>
         <h2>Корзина</h2>
         <div id="cart-list"></div>
-        <h3 id="total-price"></h3>
-        <hr>
-        <input type="text" id="fio" placeholder="ФИО">
-        <input type="tel" id="tel" placeholder="Телефон">
-        <input type="text" id="adr" placeholder="Адрес доставки">
+        <div id="total-sum"></div>
+    </div>
+
+    <div id="screen-checkout" class="container hidden">
+        <div class="back-btn" onclick="showScreen('screen-cart')">← Назад в корзину</div>
+        <h2>Оформление заказа</h2>
+        <input type="text" id="fio" placeholder="Ваше ФИО">
+        <input type="tel" id="phone" placeholder="Номер телефона">
+        <input type="text" id="addr" placeholder="Адрес доставки">
     </div>
 
 <script>
@@ -55,21 +66,26 @@
     const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
 
     async function load() {
-        const res = await fetch(CSV + '&t=' + Date.now());
-        const text = await res.text();
-        const rows = text.split('\n').slice(1);
-        allItems = rows.map(r => {
-            const c = r.split(',');
-            return { cat: c[0]?.trim(), name: c[1]?.trim(), price: parseInt(c[2]) || 0, img: c[3]?.trim(), cImg: c[4]?.trim() };
-        }).filter(i => i.name);
-        renderCats();
+        try {
+            const res = await fetch(CSV + '&t=' + Date.now());
+            const text = await res.text();
+            const rows = text.split('\n').slice(1);
+            allItems = rows.map(r => {
+                const c = r.split(',');
+                return { cat: c[0]?.trim(), name: c[1]?.trim(), price: parseInt(c[2]) || 0, img: c[3]?.trim(), cImg: c[4]?.trim() };
+            }).filter(i => i.name && i.price > 0);
+            renderCats();
+        } catch(e) { console.error("Ошибка загрузки данных"); }
     }
 
     function renderCats() {
         const cats = [...new Set(allItems.map(i => i.cat))];
         document.getElementById('cats-list').innerHTML = cats.map(c => {
             const i = allItems.find(item => item.cat === c);
-            return `<div class="card" onclick="showProds('${c}')"><div class="image-wrapper"><img src="${i.cImg}"></div><div class="title">${c}</div></div>`;
+            return `<div class="card" onclick="showProds('${c.replace(/'/g, "\\'")}')">
+                <div class="image-wrapper"><img src="${i.cImg}"></div>
+                <div class="title" style="text-align:center">${c}</div>
+            </div>`;
         }).join('');
     }
 
@@ -80,49 +96,101 @@
             <div class="card">
                 <div class="image-wrapper"><img src="${i.img}"></div>
                 <div class="title">${i.name}</div>
-                <div class="price">${i.price} ₽ <button class="btn-add" onclick="add('${i.name}',${i.price})">+</button></div>
+                <div class="price-row">
+                    <span class="price">${i.price} ₽</span>
+                    <button class="btn-add" onclick="updateCart('${i.name.replace(/'/g, "\\'")}', ${i.price}, 1)">+</button>
+                </div>
             </div>`).join('');
     }
 
-    function add(n, p) {
-        cart[n] = cart[n] ? {p:p, q:cart[n].q+1} : {p:p, q:1};
-        tg.MainButton.setText(`КОРЗИНА (${Object.values(cart).reduce((a,b)=>a+b.q,0)})`);
-        tg.MainButton.show();
-    }
-
-    function showCart() {
-        showScreen('screen-cart');
-        let total = 0;
-        document.getElementById('cart-list').innerHTML = Object.entries(cart).map(([n, i]) => {
-            total += i.p * i.q;
-            return `<div class="cart-item"><span>${n} (x${i.q})</span><b>${i.p*i.q} ₽</b></div>`;
-        }).join('');
-        document.getElementById('total-price').innerText = `Итого: ${total} ₽`;
-        tg.MainButton.setText("ПОДТВЕРДИТЬ ЗАКАЗ");
-    }
-
-    function send() {
-        const fio = document.getElementById('fio').value, tel = document.getElementById('tel').value, adr = document.getElementById('adr').value;
-        if(!fio || !tel || !adr) return tg.showAlert("Заполните форму!");
+    function updateCart(name, price, delta) {
+        if (!cart[name]) cart[name] = { p: price, q: 0 };
+        cart[name].q += delta;
+        if (cart[name].q <= 0) delete cart[name];
         
-        let orderItems = Object.entries(cart).map(([n, i]) => ({ n: n, q: i.q, p: i.p }));
-        let total = orderItems.reduce((a, b) => a + (b.p * b.q), 0);
+        tg.HapticFeedback.impactOccurred('light');
+        updateMainBtn();
+        if (!document.getElementById('screen-cart').classList.contains('hidden')) renderCart();
+    }
 
-        tg.sendData(JSON.stringify({
-            products: orderItems,
-            total: total,
-            user: { fio: fio, tel: tel, adr: adr }
-        }));
+    function updateMainBtn() {
+        const count = Object.values(cart).reduce((a, b) => a + b.q, 0);
+        if (count > 0) {
+            const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
+            const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
+            
+            if (isCheck) tg.MainButton.setText("ОТПРАВИТЬ ЗАКАЗ");
+            else if (isCart) tg.MainButton.setText("ПЕРЕЙТИ К ОФОРМЛЕНИЮ");
+            else tg.MainButton.setText(`КОРЗИНА (${count})`);
+            
+            tg.MainButton.show();
+        } else {
+            tg.MainButton.hide();
+        }
+    }
+
+    function renderCart() {
+        const list = document.getElementById('cart-list');
+        let total = 0;
+        const entries = Object.entries(cart);
+        
+        if (entries.length === 0) {
+            list.innerHTML = "<p style='text-align:center'>Корзина пуста</p>";
+            document.getElementById('total-sum').innerText = "";
+            return;
+        }
+
+        list.innerHTML = entries.map(([n, i]) => {
+            total += i.p * i.q;
+            return `<div class="cart-item">
+                <div style="flex:1"><b>${n}</b><br><small>${i.p} ₽</small></div>
+                <div class="qty-controls">
+                    <button class="btn-qty" onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, -1)">-</button>
+                    <span>${i.q}</span>
+                    <button class="btn-qty" onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, 1)">+</button>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('total-sum').innerText = `Итого: ${total} ₽`;
     }
 
     tg.onEvent('mainButtonClicked', () => {
-        if(document.getElementById('screen-cart').classList.contains('hidden')) showCart();
-        else send();
+        const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
+        const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
+        
+        if (!isCart && !isCheck) {
+            renderCart();
+            showScreen('screen-cart');
+        } else if (isCart) {
+            showScreen('screen-checkout');
+        } else {
+            sendOrder();
+        }
     });
+
+    function sendOrder() {
+        const f = document.getElementById('fio').value.trim();
+        const p = document.getElementById('phone').value.trim();
+        const a = document.getElementById('addr').value.trim();
+        
+        if(!f || !p || !a) return tg.showAlert("Заполните все данные доставки!");
+
+        // Формируем структуру в точности как ждет Python
+        tg.sendData(JSON.stringify({
+            products: cart,
+            customer: { fio: f, phone: p, addr: a }
+        }));
+    }
 
     function showScreen(id) {
         document.querySelectorAll('.container').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
+        window.scrollTo(0,0);
+        updateMainBtn();
+    }
+
+    function goBackFromCart() {
+        showScreen(curCat ? 'screen-prods' : 'screen-cats');
     }
 
     load();
