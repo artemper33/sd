@@ -1,96 +1,29 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Thai Shop</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --hint-color: #707579;
-            --button-color: #3390ec;
-            --secondary-bg: #f4f4f5;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0; padding: 0;
-        }
-
-        .container { padding: 15px; }
-        .hidden { display: none; }
-
-        /* Категории */
-        .categories-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
-        .category-card {
-            background: var(--secondary-bg); border-radius: 12px; padding: 15px;
-            text-align: center; cursor: pointer;
-        }
-        .category-card img { width: 60px; height: 60px; object-fit: contain; }
-
-        /* Товары */
-        .products-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
-        .product-card {
-            background: var(--secondary-bg); border-radius: 12px; padding: 10px;
-            text-align: center; display: flex; flex-direction: column;
-        }
-        .product-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
-        .price { font-weight: bold; color: var(--button-color); margin: 8px 0; }
-        
-        .btn-add {
-            background: var(--button-color); color: white; border: none;
-            padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer;
-        }
-
-        /* Корзина и форма */
-        .cart-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 0; border-bottom: 1px solid #ddd;
-        }
-        .order-form {
-            background: var(--secondary-bg); border-radius: 12px; padding: 15px; margin-top: 20px;
-        }
-        .order-form input {
-            width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px;
-            border: 1px solid #ccc; box-sizing: border-box; font-size: 16px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container" id="screen-categories">
-    <h2>Категории</h2>
-    <div id="categories-list" class="categories-grid"></div>
-</div>
-
-<div class="container hidden" id="screen-products">
-    <button onclick="showCategories()" style="border:none; background:none; color:var(--button-color); padding:0; margin-bottom:15px; font-size:16px;">← Назад</button>
-    <h2 id="category-title">Товары</h2>
-    <div id="products-list" class="products-grid"></div>
-</div>
-
 <div class="container hidden" id="screen-cart">
-    <button onclick="goBackFromCart()" style="border:none; background:none; color:var(--button-color); padding:0; margin-bottom:15px; font-size:16px;">← Вернуться</button>
-    <h2>Ваш заказ</h2>
+    <button onclick="goBackFromCart()" style="border:none; background:none; color:var(--button-color); font-size:16px; margin-bottom:15px;">← Назад</button>
+    <h2>Корзина</h2>
     <div id="cart-items"></div>
-    
+    <div id="cart-total-price" style="text-align:right; font-weight:bold; font-size:20px; margin-top:15px; border-top: 1px solid #ddd; padding-top:10px;"></div>
+</div>
+
+<div class="container hidden" id="screen-checkout">
+    <button onclick="showCart()" style="border:none; background:none; color:var(--button-color); font-size:16px; margin-bottom:15px;">← В корзину</button>
+    <h2>Доставка</h2>
     <div class="order-form">
-        <h3>Данные для доставки</h3>
         <input type="text" id="user-fio" placeholder="ФИО">
         <input type="tel" id="user-phone" placeholder="Номер телефона">
         <input type="text" id="user-address" placeholder="Адрес доставки">
     </div>
-    
-    <div id="cart-total" style="text-align:right; font-weight:bold; font-size:20px; margin-top:15px;"></div>
 </div>
+
+<style>
+    /* Добавим стили для кнопок +/- в корзине */
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+    .qty-controls { display: flex; align-items: center; gap: 10px; }
+    .btn-qty { 
+        background: var(--secondary-bg); border: none; width: 30px; height: 30px; 
+        border-radius: 50%; font-weight: bold; cursor: pointer; 
+    }
+</style>
 
 <script>
     let tg = window.Telegram.WebApp;
@@ -100,148 +33,134 @@
 
     let allProducts = [];
     let cart = {};
-    let currentScreen = 'categories';
-    let lastProductsCategory = '';
+    let currentScreen = 'categories'; 
 
     async function loadData() {
         try {
             const response = await fetch(SHEET_URL);
             const data = await response.text();
-            const rows = data.split('\n').slice(1);
-            
+            const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0).slice(1);
             allProducts = rows.map(row => {
                 const cols = row.split(',');
-                return {
-                    cat: cols[0]?.trim(),
-                    name: cols[1]?.trim(),
-                    price: parseInt(cols[2]),
-                    img: cols[3]?.trim(),
-                    cat_img: cols[4]?.trim()
-                };
+                return { cat: cols[0], name: cols[1], price: parseInt(cols[2]), img: cols[3], cat_img: cols[4] };
             }).filter(p => p.name && p.price);
-
             renderCategories();
-        } catch (e) { console.error("Ошибка:", e); }
+        } catch (e) { console.error(e); }
     }
 
     function renderCategories() {
         const list = document.getElementById('categories-list');
         const cats = [...new Set(allProducts.map(p => p.cat))];
         list.innerHTML = '';
-        
         cats.forEach(cat => {
             const p = allProducts.find(item => item.cat === cat);
             const card = document.createElement('div');
             card.className = 'category-card';
             card.onclick = () => showProducts(cat);
-            card.innerHTML = `
-                <img src="${p.cat_img || 'img/cat-default.png'}" onerror="this.src='https://via.placeholder.com/60'">
-                <div style="margin-top:8px; font-weight:bold;">${cat}</div>
-            `;
+            card.innerHTML = `<img src="${p.cat_img}"><div style="margin-top:8px; font-weight:bold;">${cat}</div>`;
             list.appendChild(card);
         });
     }
 
     function showProducts(cat) {
         currentScreen = 'products';
-        lastProductsCategory = cat;
-        document.getElementById('screen-categories').classList.add('hidden');
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
         document.getElementById('screen-products').classList.remove('hidden');
-        document.getElementById('category-title').innerText = cat;
-        
         const list = document.getElementById('products-list');
         list.innerHTML = '';
-        
         allProducts.filter(p => p.cat === cat).forEach(p => {
             const card = document.createElement('div');
             card.className = 'product-card';
             card.innerHTML = `
-                <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150'">
-                <h4 style="margin:8px 0; font-size:14px;">${p.name}</h4>
+                <img src="${p.img}">
+                <h4>${p.name}</h4>
                 <div class="price">${p.price} ₽</div>
-                <button class="btn-add" onclick="addToCart('${p.name}', ${p.price})">В корзину</button>
+                <button class="btn-add" onclick="changeQty('${p.name}', 1, ${p.price})">Добавить</button>
             `;
             list.appendChild(card);
         });
         updateMainButton();
     }
 
-    function showCategories() {
-        currentScreen = 'categories';
-        document.getElementById('screen-products').classList.add('hidden');
-        document.getElementById('screen-categories').classList.remove('hidden');
-        updateMainButton();
-    }
-
-    function addToCart(name, price) {
-        if (cart[name]) cart[name].count++;
-        else cart[name] = { price: price, count: 1 };
+    // Универсальная функция изменения количества
+    function changeQty(name, delta, price) {
+        if (!cart[name]) {
+            if (delta > 0) cart[name] = { price: price, count: delta };
+        } else {
+            cart[name].count += delta;
+            if (cart[name].count <= 0) delete cart[name];
+        }
+        
+        if (currentScreen === 'cart') renderCartItems();
         updateMainButton();
     }
 
     function updateMainButton() {
         const count = Object.values(cart).reduce((a, b) => a + b.count, 0);
         if (count > 0) {
-            tg.MainButton.setText(currentScreen === 'cart' ? "ОФОРМИТЬ ЗАКАЗ" : `КОРЗИНА (${count})`);
+            if (currentScreen === 'cart') tg.MainButton.setText("ПЕРЕЙТИ К ОФОРМЛЕНИЮ");
+            else if (currentScreen === 'checkout') tg.MainButton.setText("ПОДТВЕРДИТЬ И ОПЛАТИТЬ");
+            else tg.MainButton.setText(`КОРЗИНА (${count})`);
             tg.MainButton.show();
         } else {
             tg.MainButton.hide();
         }
     }
 
-    function showCart() {
-        currentScreen = 'cart';
-        document.getElementById('screen-categories').classList.add('hidden');
-        document.getElementById('screen-products').classList.add('hidden');
-        document.getElementById('screen-cart').classList.remove('hidden');
-        
+    function renderCartItems() {
         const list = document.getElementById('cart-items');
         list.innerHTML = '';
         let total = 0;
-
         for (const [name, info] of Object.entries(cart)) {
             const sum = info.price * info.count;
             total += sum;
             list.innerHTML += `
                 <div class="cart-item">
-                    <span>${name} x${info.count}</span>
-                    <span>${sum} ₽</span>
-                </div>
-            `;
+                    <div>
+                        <div style="font-weight:bold;">${name}</div>
+                        <div style="color:var(--button-color);">${info.price} ₽</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="changeQty('${name}', -1, ${info.price})">-</button>
+                        <span>${info.count}</span>
+                        <button class="btn-qty" onclick="changeQty('${name}', 1, ${info.price})">+</button>
+                    </div>
+                </div>`;
         }
-        document.getElementById('cart-total').innerText = `Итого: ${total} ₽`;
+        document.getElementById('cart-total-price').innerText = `Итого: ${total} ₽`;
+    }
+
+    function showCart() {
+        currentScreen = 'cart';
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+        document.getElementById('screen-cart').classList.remove('hidden');
+        renderCartItems();
         updateMainButton();
     }
 
-    function goBackFromCart() {
-        if (lastProductsCategory) showProducts(lastProductsCategory);
-        else showCategories();
-        document.getElementById('screen-cart').classList.add('hidden');
+    function showCheckout() {
+        currentScreen = 'checkout';
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+        document.getElementById('screen-checkout').classList.remove('hidden');
+        updateMainButton();
     }
 
     tg.onEvent('mainButtonClicked', () => {
-        if (currentScreen !== 'cart') {
+        if (currentScreen === 'categories' || currentScreen === 'products') {
             showCart();
-        } else {
+        } else if (currentScreen === 'cart') {
+            showCheckout();
+        } else if (currentScreen === 'checkout') {
             const fio = document.getElementById('user-fio').value;
             const phone = document.getElementById('user-phone').value;
             const address = document.getElementById('user-address').value;
-
             if (!fio || !phone || !address) {
-                tg.showAlert("Заполните данные для доставки!");
+                tg.showAlert("Заполните все данные доставки!");
                 return;
             }
-
-            const data = {
-                products: cart,
-                customer: { fio, phone, address }
-            };
-            tg.sendData(JSON.stringify(data));
+            tg.sendData(JSON.stringify({ products: cart, customer: { fio, phone, address } }));
         }
     });
 
     loadData();
 </script>
-</body>
-</html>
-
