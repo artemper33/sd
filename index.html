@@ -7,350 +7,125 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #f4f1ee; 
-            --card-bg: #ffffff;
-            --text-main: #1a1a1a;
-            --text-muted: #7f8c8d;
-            --accent-green: #4b6a51;
-            --accent-light: #e8f0e9;
-            --radius: 30px;
-            --shadow: 0 10px 25px rgba(0,0,0,0.05);
+            --bg-color: #f4f1ee; --card-bg: #ffffff; --text-main: #1a1a1a;
+            --accent-green: #4b6a51; --radius: 30px; --shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0; padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .container { 
-            padding: 24px 16px; 
-            max-width: 600px; 
-            margin: 0 auto;
-            box-sizing: border-box; 
-            min-height: 100vh;
-        }
-        
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 0; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
         .hidden { display: none !important; }
-
-        h2 { 
-            font-size: 24px; 
-            font-weight: 700; 
-            margin: 0 0 20px 0; 
-            letter-spacing: -0.5px;
-        }
-
-        .categories-grid, .products-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        /* КАРТОЧКА ТОВАРА */
-        .product-card, .category-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 12px;
-            box-shadow: var(--shadow);
-            position: relative;
-            transition: transform 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-        }
-
-        .product-card:active { transform: scale(0.96); }
-
-        /* ОБЕРТКА КАРТИНКИ С ОТСТУПАМИ (КАК СЛЕВА НА ФОТО) */
-        .image-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 100%; /* Соотношение сторон 1:1 (квадрат) */
-            background: #f8f8f8; 
-            /* Вычисляем радиус так, чтобы он гармонировал с внешней рамкой */
-            border-radius: calc(var(--radius) - 12px); 
-            overflow: hidden;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-        }
-
-        .image-wrapper img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            /* Растягиваем на всю площадь родителя */
-            width: 100%; 
-            height: 100%;
-            /* cover заполнит весь блок, обрезая лишнее, 
-           чтобы не было пустых серых полос */
-            object-fit: cover;
-        }
-
-        .badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: var(--accent-green);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            z-index: 2;
-        }
-
-        .product-title {
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin: 4px 4px 10px 4px;
-            min-height: 36px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 4px 4px 4px;
-        }
-
-        .price { 
-            font-weight: 650; 
-            font-size: 18px; 
-            color: var(--text-main);
-        }
-
-        /* КРУГЛАЯ КНОПКА ПЛЮС */
-        .btn-add {
-            background: var(--accent-green);
-            color: #fff;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 20px;
-            box-shadow: 0 4px 10px rgba(75, 106, 81, 0.2);
-        }
-
-        .back-btn { color: var(--text-muted); font-weight: 600; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-        /* КОРЗИНА */
-        .cart-item {
-            background: white; border-radius: 22px; padding: 16px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow);
-        }
-
-        .qty-btns { display: flex; align-items: center; gap: 12px; background: var(--accent-light); padding: 6px; border-radius: 12px; }
-        .btn-q { width: 32px; height: 32px; border-radius: 10px; border: none; background: white; font-weight: bold; cursor: pointer; }
-
-        input {
-            width: 100%; padding: 16px; margin-bottom: 12px;
-            border-radius: 18px; border: 1px solid #eee;
-            font-size: 16px; box-sizing: border-box;
-        }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: white; border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); position: relative; }
+        .image-wrapper { width: 100%; aspect-ratio: 1/1; background: #f1f1f1; border-radius: 20px; overflow: hidden; margin-bottom: 10px; }
+        .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .title { font-size: 14px; font-weight: 600; height: 36px; overflow: hidden; margin-bottom: 8px; }
+        .price { font-weight: 700; font-size: 16px; }
+        .btn-add { background: var(--accent-green); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; float: right; cursor: pointer; }
+        .back-btn { cursor: pointer; color: var(--accent-green); margin-bottom: 15px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 10px; background: white; padding: 10px; border-radius: 15px; }
     </style>
 </head>
 <body>
+    <div id="screen-cats" class="container">
+        <h2>Каталог</h2>
+        <div id="cats-list" class="grid"></div>
+    </div>
 
-<div id="screen-categories" class="container">
-    <h2>Каталог</h2>
-    <div id="categories-list" class="categories-grid"></div>
-    <div id="debug-info"></div>
-</div>
+    <div id="screen-prods" class="container hidden">
+        <div class="back-btn" onclick="showScreen('screen-cats')">← Назад</div>
+        <h2 id="cat-title"></h2>
+        <div id="prods-list" class="grid"></div>
+    </div>
 
-<div id="screen-products" class="container hidden">
-    <div class="back-btn" onclick="showScreen('screen-categories')">← Назад</div>
-    <h2 id="cat-name"></h2>
-    <div id="products-list" class="products-grid"></div>
-</div>
-
-<div id="screen-cart" class="container hidden">
-    <div class="back-btn" onclick="goBack()">← В магазин</div>
-    <h2>Корзина</h2>
-    <div id="cart-items"></div>
-    <div id="total" style="text-align:right; font-weight:bold; font-size:22px; margin-top:20px; color: var(--accent-green);"></div>
-</div>
-
-<div id="screen-checkout" class="container hidden">
-    <div class="back-btn" onclick="showScreen('screen-cart')">← Назад</div>
-    <h2>Оформление</h2>
-    <input type="text" id="fio" placeholder="Ваше имя">
-    <input type="tel" id="phone" placeholder="Телефон">
-    <input type="text" id="addr" placeholder="Адрес доставки">
-</div>
+    <div id="screen-cart" class="container hidden">
+        <div class="back-btn" onclick="showScreen('screen-prods')">← В магазин</div>
+        <h2>Корзина</h2>
+        <div id="cart-list"></div>
+        <h3 id="total-price"></h3>
+        <hr>
+        <input type="text" id="fio" placeholder="ФИО">
+        <input type="tel" id="tel" placeholder="Телефон">
+        <input type="text" id="adr" placeholder="Адрес доставки">
+    </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
-    
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
-    
-    let allItems = [], cart = {}, currentCat = '';
-
-    function parseCSV(text) {
-        const rows = [];
-        const lines = text.split(/\r?\n/);
-        for (let line of lines) {
-            if (!line.trim()) continue;
-            const cells = [];
-            let cell = '', inQuotes = false;
-            for (let char of line) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) { cells.push(cell.trim()); cell = ''; }
-                else cell += char;
-            }
-            cells.push(cell.trim());
-            rows.push(cells.map(c => c.replace(/^"|"$/g, '')));
-        }
-        return rows;
-    }
+    let allItems = [], cart = {}, curCat = '';
+    const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
 
     async function load() {
-        try {
-            const res = await fetch(CSV_URL + '&t=' + Date.now());
-            const text = await res.text();
-            const rows = parseCSV(text).slice(1);
-            
-            allItems = rows.map(r => {
-                if (r.length < 3) return null;
-                let rawPrice = r[2] ? r[2].replace(/[^\d]/g, '') : "0";
-                let price = parseInt(rawPrice);
-                
-                return { 
-                    cat: r[0], 
-                    name: r[1], 
-                    price: price, 
-                    img: r[3] || '', 
-                    cImg: r[4] || '' 
-                };
-            }).filter(i => i && i.cat && i.name && i.price > 0);
-
-            renderCats();
-
-            const saved = localStorage.getItem('thai_cart');
-            if(saved) { cart = JSON.parse(saved); updateMainBtn(); }
-        } catch(e) { 
-            document.getElementById('debug-info').innerText = "Ошибка загрузки данных.";
-        }
+        const res = await fetch(CSV + '&t=' + Date.now());
+        const text = await res.text();
+        const rows = text.split('\n').slice(1);
+        allItems = rows.map(r => {
+            const c = r.split(',');
+            return { cat: c[0]?.trim(), name: c[1]?.trim(), price: parseInt(c[2]) || 0, img: c[3]?.trim(), cImg: c[4]?.trim() };
+        }).filter(i => i.name);
+        renderCats();
     }
 
     function renderCats() {
-        const list = document.getElementById('categories-list');
         const cats = [...new Set(allItems.map(i => i.cat))];
-        list.innerHTML = cats.map(cat => {
-            const item = allItems.find(i => i.cat === cat);
-            return `
-            <div class="category-card" onclick="showProds('${cat.replace(/'/g, "\\'")}')">
-                <div class="image-wrapper">
-                    <img src="${item.cImg}" onerror="this.src='https://via.placeholder.com/150?text=Category'">
-                </div>
-                <div class="product-title" style="text-align:center; min-height:auto;">${cat}</div>
-            </div>`;
+        document.getElementById('cats-list').innerHTML = cats.map(c => {
+            const i = allItems.find(item => item.cat === c);
+            return `<div class="card" onclick="showProds('${c}')"><div class="image-wrapper"><img src="${i.cImg}"></div><div class="title">${c}</div></div>`;
         }).join('');
     }
 
-    function showProds(cat) {
-        currentCat = cat;
-        showScreen('screen-products');
-        document.getElementById('cat-name').innerText = cat;
-        const list = document.getElementById('products-list');
-        list.innerHTML = allItems.filter(i => i.cat === cat).map(i => `
-            <div class="product-card">
-                <div class="badge">Sale</div>
-                <div class="image-wrapper">
-                    <img src="${i.img}" onerror="this.src='https://via.placeholder.com/150?text=Product'">
-                </div>
-                <div class="product-title">${i.name}</div>
-                <div class="price-row">
-                    <div class="price">${i.price} ₽</div>
-                    <button class="btn-add" onclick="event.stopPropagation(); add('${i.name.replace(/'/g,"")}', ${i.price})">+</button>
-                </div>
-            </div>
-        `).join('');
+    function showProds(c) {
+        curCat = c; showScreen('screen-prods');
+        document.getElementById('cat-title').innerText = c;
+        document.getElementById('prods-list').innerHTML = allItems.filter(i => i.cat === c).map(i => `
+            <div class="card">
+                <div class="image-wrapper"><img src="${i.img}"></div>
+                <div class="title">${i.name}</div>
+                <div class="price">${i.price} ₽ <button class="btn-add" onclick="add('${i.name}',${i.price})">+</button></div>
+            </div>`).join('');
     }
 
-    function add(name, price) {
-        cart[name] = cart[name] ? {p:price, q:cart[name].q+1} : {p:price, q:1};
-        localStorage.setItem('thai_cart', JSON.stringify(cart));
-        tg.HapticFeedback.impactOccurred('light');
-        updateMainBtn();
+    function add(n, p) {
+        cart[n] = cart[n] ? {p:p, q:cart[n].q+1} : {p:p, q:1};
+        tg.MainButton.setText(`КОРЗИНА (${Object.values(cart).reduce((a,b)=>a+b.q,0)})`);
+        tg.MainButton.show();
     }
-
-    function updateMainBtn() {
-        const count = Object.values(cart).reduce((a,b)=>a+b.q, 0);
-        if(count > 0) {
-            const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
-            const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-            if(isCheck) tg.MainButton.setText("ПОДТВЕРДИТЬ");
-            else if(isCart) tg.MainButton.setText("К ОФОРМЛЕНИЮ");
-            else tg.MainButton.setText(`В КОРЗИНУ (${count})`);
-            tg.MainButton.show();
-        } else tg.MainButton.hide();
-    }
-
-    tg.onEvent('mainButtonClicked', () => {
-        const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
-        const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-        if(!isCart && !isCheck) showCart();
-        else if(isCart) showScreen('screen-checkout');
-        else send();
-    });
 
     function showCart() {
         showScreen('screen-cart');
-        const list = document.getElementById('cart-items');
         let total = 0;
-        const entries = Object.entries(cart);
-        list.innerHTML = entries.map(([n, i]) => {
+        document.getElementById('cart-list').innerHTML = Object.entries(cart).map(([n, i]) => {
             total += i.p * i.q;
-            return `
-            <div class="cart-item">
-                <div><b>${n}</b><br><small>${i.p} ₽</small></div>
-                <div class="qty-btns">
-                    <button class="btn-q" onclick="change('${n.replace(/'/g,"\\'")}',-1)">-</button>
-                    <span>${i.q}</span>
-                    <button class="btn-q" onclick="change('${n.replace(/'/g,"\\'")}',1)">+</button>
-                </div>
-            </div>`;
+            return `<div class="cart-item"><span>${n} (x${i.q})</span><b>${i.p*i.q} ₽</b></div>`;
         }).join('');
-        document.getElementById('total').innerText = 'Итого: ' + total + ' ₽';
-    }
-
-    function change(n, d) {
-        cart[n].q += d; if(cart[n].q <= 0) delete cart[n];
-        localStorage.setItem('thai_cart', JSON.stringify(cart));
-        showCart(); updateMainBtn();
+        document.getElementById('total-price').innerText = `Итого: ${total} ₽`;
+        tg.MainButton.setText("ПОДТВЕРДИТЬ ЗАКАЗ");
     }
 
     function send() {
-        const f = document.getElementById('fio').value, p = document.getElementById('phone').value, a = document.getElementById('addr').value;
-        if(!f || !p || !a) return tg.showAlert('Заполните данные!');
-        tg.sendData(JSON.stringify({products: cart, customer: {fio:f, phone:p, addr:a}}));
+        const fio = document.getElementById('fio').value, tel = document.getElementById('tel').value, adr = document.getElementById('adr').value;
+        if(!fio || !tel || !adr) return tg.showAlert("Заполните форму!");
+        
+        let orderItems = Object.entries(cart).map(([n, i]) => ({ n: n, q: i.q, p: i.p }));
+        let total = orderItems.reduce((a, b) => a + (b.p * b.q), 0);
+
+        tg.sendData(JSON.stringify({
+            products: orderItems,
+            total: total,
+            user: { fio: fio, tel: tel, adr: adr }
+        }));
     }
+
+    tg.onEvent('mainButtonClicked', () => {
+        if(document.getElementById('screen-cart').classList.contains('hidden')) showCart();
+        else send();
+    });
 
     function showScreen(id) {
         document.querySelectorAll('.container').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
-        window.scrollTo(0,0); updateMainBtn();
     }
-    
-    function goBack() { showScreen(currentCat ? 'screen-products' : 'screen-categories'); }
 
     load();
 </script>
 </body>
 </html>
-
-
