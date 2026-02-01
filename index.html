@@ -128,21 +128,30 @@
         try {
             const response = await fetch(SHEET_URL);
             const data = await response.text();
+            
+            // Разбиваем на строки, убираем пустые
             const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0).slice(1);
             
             allProducts = rows.map(row => {
-                const cols = row.split(',');
+                // УМНОЕ РАЗДЕЛЕНИЕ: игнорируем запятые внутри кавычек
+                const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                
+                // Очищаем данные от лишних кавычек, которые добавляет CSV
+                const clean = (val) => val ? val.replace(/^"|"$/g, '').trim() : '';
+
                 return {
-                    cat: cols[0]?.trim(),
-                    name: cols[1]?.trim(),
-                    price: parseInt(cols[2]),
-                    img: cols[3]?.trim(),
-                    cat_img: cols[4]?.trim()
+                    cat: clean(cols[0]),
+                    name: clean(cols[1]),
+                    price: parseInt(clean(cols[2])) || 0,
+                    img: clean(cols[3]),
+                    cat_img: clean(cols[4])
                 };
-            }).filter(p => p.name && p.price);
+            }).filter(p => p.name && p.price > 0);
 
             renderCategories();
-        } catch (e) { console.error("Ошибка загрузки:", e); }
+        } catch (e) { 
+            console.error("Ошибка загрузки:", e); 
+        }
     }
 
     function renderCategories() {
@@ -301,3 +310,4 @@
 </script>
 </body>
 </html>
+
