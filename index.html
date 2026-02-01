@@ -65,22 +65,41 @@
 
         .product-card:active, .category-card:active { transform: scale(0.97); }
 
-        .image-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 100%; /* Квадрат */
-            background: #eee;
-            overflow: hidden;
-        }
+        /* Контейнер для фото с внутренними отступами */
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* Сохраняем квадратную форму */
+    background: #fdfcfb; /* Светлый фон внутри обертки */
+    border-radius: calc(var(--radius) - 10px);
+    overflow: hidden;
+    margin-bottom: 12px;
+    
+    /* ГЛАВНОЕ: Внутренний отступ создает эффект 'рамки' */
+    box-sizing: border-box; 
+    padding: 15px; /* Настрой это значение, чтобы увеличить/уменьшить отступы */
+}
 
-        .image-wrapper img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Заполняет всю область без полос */
-        }
+/* Сама картинка внутри обертки */
+.image-wrapper img {
+    position: absolute;
+    /* Центрируем картинку */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Уменьшаем ширину и высоту, чтобы появились отступы по краям */
+    max-width: 85%; 
+    max-height: 85%;
+    
+    object-fit: contain; /* Картинка не обрезается и сохраняет пропорции */
+    transition: transform 0.3s ease;
+}
+
+/* Дополнительный эффект при наведении на карточку (по желанию) */
+.product-card:hover .image-wrapper img {
+    transform: translate(-50%, -50%) scale(1.05); /* Легкое увеличение картинки */
+}
 
         /* Бейдж Sale как на референсе */
         .badge {
@@ -312,3 +331,4 @@
 </script>
 </body>
 </html>
+
