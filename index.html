@@ -42,26 +42,23 @@
             position: relative;
         }
 
-        /* КОНТЕЙНЕР ФОТО (ИСПРАВЛЕНО) */
+        /* КОНТЕЙНЕР ФОТО (Картинка в размер блока) */
         .image-wrapper {
             width: 100%;
-            aspect-ratio: 1 / 1; /* Делает блок квадратным */
-            background: #f8f8f8;
+            aspect-ratio: 1 / 1;
+            background: #f1f1f1; /* Тот самый серый блок */
             border-radius: calc(var(--radius) - 10px);
             margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            padding: 10px; /* Отступ, чтобы фото не касалось краев */
-            box-sizing: border-box;
+            overflow: hidden; /* Чтобы картинка не вылезала за скругления */
+            display: block;
+            padding: 0; /* Убираем все отступы */
         }
 
         .image-wrapper img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* Сохраняет пропорции без обрезки */
-            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Картинка полностью заполняет блок */
+            display: block;
         }
 
         .badge {
@@ -94,6 +91,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 4px;
+            margin-top: auto;
         }
 
         .price { font-weight: 800; font-size: 18px; }
@@ -133,16 +131,26 @@
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
 
     async function load() {
-        const res = await fetch(CSV_URL + '&t=' + Date.now());
-        const text = await res.text();
-        const rows = text.split('\n').slice(1);
-        
-        allItems = rows.map(row => {
-            const cols = row.split(',');
-            return { cat: cols[0], name: cols[1], price: cols[2], img: cols[3], cImg: cols[4] };
-        }).filter(i => i.name);
-        
-        renderCats();
+        try {
+            const res = await fetch(CSV_URL + '&t=' + Date.now());
+            const text = await res.text();
+            const rows = text.split('\n').slice(1);
+            
+            allItems = rows.map(row => {
+                const cols = row.split(',');
+                return { 
+                    cat: cols[0]?.trim(), 
+                    name: cols[1]?.trim(), 
+                    price: cols[2]?.trim(), 
+                    img: cols[3]?.trim(), 
+                    cImg: cols[4]?.trim() 
+                };
+            }).filter(i => i.name);
+            
+            renderCats();
+        } catch (e) {
+            console.error("Ошибка загрузки:", e);
+        }
     }
 
     function renderCats() {
@@ -151,9 +159,9 @@
         list.innerHTML = cats.map(cat => {
             const item = allItems.find(i => i.cat === cat);
             return `
-                <div class="product-card" onclick="showProds('${cat}')">
-                    <div class="image-wrapper"><img src="${item.cImg || ''}"></div>
-                    <div class="product-title" style="text-align:center">${cat}</div>
+                <div class="product-card" onclick="showProds('${cat.replace(/'/g, "\\'")}')">
+                    <div class="image-wrapper"><img src="${item.cImg || ''}" onerror="this.src='https://via.placeholder.com/300?text=Category'"></div>
+                    <div class="product-title" style="text-align:center; height: auto;">${cat}</div>
                 </div>`;
         }).join('');
     }
@@ -166,7 +174,7 @@
             <div class="product-card">
                 <div class="badge">SALE</div>
                 <div class="image-wrapper">
-                    <img src="${i.img || ''}">
+                    <img src="${i.img || ''}" onerror="this.src='https://via.placeholder.com/300?text=Product'">
                 </div>
                 <div class="product-title">${i.name}</div>
                 <div class="price-row">
