@@ -67,9 +67,10 @@
         .image-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 100%; /* Квадрат */
-            background: #f8f8f8; /* Мягкий фон подложки */
-            border-radius: calc(var(--radius) - 10px);
+            padding-top: 100%; /* Соотношение сторон 1:1 (квадрат) */
+            background: #f8f8f8; 
+            /* Вычисляем радиус так, чтобы он гармонировал с внешней рамкой */
+            border-radius: calc(var(--radius) - 12px); 
             overflow: hidden;
             margin-bottom: 12px;
             box-sizing: border-box;
@@ -77,13 +78,14 @@
 
         .image-wrapper img {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            /* Уменьшаем размер фото внутри квадрата для создания 'воздуха' */
-            width: 75%; 
-            height: 75%;
-            object-fit: contain;
+            top: 0;
+            left: 0;
+            /* Растягиваем на всю площадь родителя */
+            width: 100%; 
+            height: 100%;
+            /* cover заполнит весь блок, обрезая лишнее, 
+           чтобы не было пустых серых полос */
+            object-fit: cover;
         }
 
         .badge {
@@ -350,3 +352,4 @@
 </script>
 </body>
 </html>
+
