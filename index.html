@@ -10,162 +10,116 @@
             --bg-color: #f4f1ee; 
             --card-bg: #ffffff;
             --text-main: #1a1a1a;
-            --text-muted: #7f8c8d;
             --accent-green: #4b6a51;
-            --accent-light: #e8f0e9;
             --radius: 30px;
             --shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0; padding: 0;
-            -webkit-font-smoothing: antialiased;
         }
 
-        .container { 
-            padding: 24px 16px; 
-            max-width: 600px; 
-            margin: 0 auto;
-            box-sizing: border-box; 
-            min-height: 100vh;
-        }
-        
+        .container { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
         .hidden { display: none !important; }
 
-        h2 { 
-            font-size: 24px; 
-            font-weight: 700; 
-            margin: 0 0 20px 0; 
-            letter-spacing: -0.5px;
-        }
-
-        .categories-grid, .products-grid {
+        .products-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
 
-        /* КАРТОЧКА ТОВАРА */
-        .product-card, .category-card {
+        /* КАРТОЧКА */
+        .product-card {
             background: var(--card-bg);
             border-radius: var(--radius);
             padding: 12px;
             box-shadow: var(--shadow);
-            position: relative;
-            transition: transform 0.2s ease;
             display: flex;
             flex-direction: column;
-            cursor: pointer;
+            position: relative;
         }
 
-        .product-card:active { transform: scale(0.96); }
-
-        /* ОБЕРТКА КАРТИНКИ С ОТСТУПАМИ (КАК СЛЕВА НА ФОТО) */
+        /* КОНТЕЙНЕР ФОТО (ИСПРАВЛЕНО) */
         .image-wrapper {
-            position: relative;
             width: 100%;
-            padding-top: 100%; /* Квадрат */
-            background: #f8f8f8; /* Мягкий фон подложки */
+            aspect-ratio: 1 / 1; /* Делает блок квадратным */
+            background: #f8f8f8;
             border-radius: calc(var(--radius) - 10px);
-            overflow: hidden;
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 10px; /* Отступ, чтобы фото не касалось краев */
             box-sizing: border-box;
         }
 
         .image-wrapper img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            /* Уменьшаем размер фото внутри квадрата для создания 'воздуха' */
-            width: 75%; 
-            height: 75%;
-            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Сохраняет пропорции без обрезки */
+            border-radius: 8px;
         }
 
         .badge {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 20px;
+            left: 20px;
             background: var(--accent-green);
             color: white;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 10px;
             font-weight: 700;
-            text-transform: uppercase;
             z-index: 2;
         }
 
         .product-title {
             font-size: 14px;
             font-weight: 600;
+            margin: 0 4px 8px 4px;
             line-height: 1.3;
-            margin: 4px 4px 10px 4px;
-            min-height: 36px;
+            height: 36px;
+            overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .price-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 4px 4px 4px;
+            padding: 0 4px;
         }
 
-        .price { 
-            font-weight: 800; 
-            font-size: 18px; 
-            color: var(--text-main);
-        }
+        .price { font-weight: 800; font-size: 18px; }
 
-        /* КРУГЛАЯ КНОПКА ПЛЮС */
         .btn-add {
             background: var(--accent-green);
-            color: #fff;
+            color: white;
             border: none;
             width: 36px;
             height: 36px;
             border-radius: 50%;
+            font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 20px;
-            box-shadow: 0 4px 10px rgba(75, 106, 81, 0.2);
         }
 
-        .back-btn { color: var(--text-muted); font-weight: 600; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-        /* КОРЗИНА */
-        .cart-item {
-            background: white; border-radius: 22px; padding: 16px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow);
-        }
-
-        .qty-btns { display: flex; align-items: center; gap: 12px; background: var(--accent-light); padding: 6px; border-radius: 12px; }
-        .btn-q { width: 32px; height: 32px; border-radius: 10px; border: none; background: white; font-weight: bold; cursor: pointer; }
-
-        input {
-            width: 100%; padding: 16px; margin-bottom: 12px;
-            border-radius: 18px; border: 1px solid #eee;
-            font-size: 16px; box-sizing: border-box;
-        }
+        .back-btn { margin-bottom: 15px; cursor: pointer; font-weight: 600; color: var(--accent-green); }
     </style>
 </head>
 <body>
 
 <div id="screen-categories" class="container">
     <h2>Каталог</h2>
-    <div id="categories-list" class="categories-grid"></div>
-    <div id="debug-info"></div>
+    <div id="categories-list" class="products-grid"></div>
 </div>
 
 <div id="screen-products" class="container hidden">
@@ -174,74 +128,21 @@
     <div id="products-list" class="products-grid"></div>
 </div>
 
-<div id="screen-cart" class="container hidden">
-    <div class="back-btn" onclick="goBack()">← В магазин</div>
-    <h2>Корзина</h2>
-    <div id="cart-items"></div>
-    <div id="total" style="text-align:right; font-weight:bold; font-size:22px; margin-top:20px; color: var(--accent-green);"></div>
-</div>
-
-<div id="screen-checkout" class="container hidden">
-    <div class="back-btn" onclick="showScreen('screen-cart')">← Назад</div>
-    <h2>Оформление</h2>
-    <input type="text" id="fio" placeholder="Ваше имя">
-    <input type="tel" id="phone" placeholder="Телефон">
-    <input type="text" id="addr" placeholder="Адрес доставки">
-</div>
-
 <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
-    
+    let allItems = []; 
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
-    
-    let allItems = [], cart = {}, currentCat = '';
-
-    function parseCSV(text) {
-        const rows = [];
-        const lines = text.split(/\r?\n/);
-        for (let line of lines) {
-            if (!line.trim()) continue;
-            const cells = [];
-            let cell = '', inQuotes = false;
-            for (let char of line) {
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) { cells.push(cell.trim()); cell = ''; }
-                else cell += char;
-            }
-            cells.push(cell.trim());
-            rows.push(cells.map(c => c.replace(/^"|"$/g, '')));
-        }
-        return rows;
-    }
 
     async function load() {
-        try {
-            const res = await fetch(CSV_URL + '&t=' + Date.now());
-            const text = await res.text();
-            const rows = parseCSV(text).slice(1);
-            
-            allItems = rows.map(r => {
-                if (r.length < 3) return null;
-                let rawPrice = r[2] ? r[2].replace(/[^\d]/g, '') : "0";
-                let price = parseInt(rawPrice);
-                
-                return { 
-                    cat: r[0], 
-                    name: r[1], 
-                    price: price, 
-                    img: r[3] || '', 
-                    cImg: r[4] || '' 
-                };
-            }).filter(i => i && i.cat && i.name && i.price > 0);
-
-            renderCats();
-
-            const saved = localStorage.getItem('thai_cart');
-            if(saved) { cart = JSON.parse(saved); updateMainBtn(); }
-        } catch(e) { 
-            document.getElementById('debug-info').innerText = "Ошибка загрузки данных.";
-        }
+        const res = await fetch(CSV_URL + '&t=' + Date.now());
+        const text = await res.text();
+        const rows = text.split('\n').slice(1);
+        
+        allItems = rows.map(row => {
+            const cols = row.split(',');
+            return { cat: cols[0], name: cols[1], price: cols[2], img: cols[3], cImg: cols[4] };
+        }).filter(i => i.name);
+        
+        renderCats();
     }
 
     function renderCats() {
@@ -250,101 +151,37 @@
         list.innerHTML = cats.map(cat => {
             const item = allItems.find(i => i.cat === cat);
             return `
-            <div class="category-card" onclick="showProds('${cat.replace(/'/g, "\\'")}')">
-                <div class="image-wrapper">
-                    <img src="${item.cImg}" onerror="this.src='https://via.placeholder.com/150?text=Category'">
-                </div>
-                <div class="product-title" style="text-align:center; min-height:auto;">${cat}</div>
-            </div>`;
+                <div class="product-card" onclick="showProds('${cat}')">
+                    <div class="image-wrapper"><img src="${item.cImg || ''}"></div>
+                    <div class="product-title" style="text-align:center">${cat}</div>
+                </div>`;
         }).join('');
     }
 
     function showProds(cat) {
-        currentCat = cat;
         showScreen('screen-products');
         document.getElementById('cat-name').innerText = cat;
         const list = document.getElementById('products-list');
         list.innerHTML = allItems.filter(i => i.cat === cat).map(i => `
             <div class="product-card">
-                <div class="badge">Sale</div>
+                <div class="badge">SALE</div>
                 <div class="image-wrapper">
-                    <img src="${i.img}" onerror="this.src='https://via.placeholder.com/150?text=Product'">
+                    <img src="${i.img || ''}">
                 </div>
                 <div class="product-title">${i.name}</div>
                 <div class="price-row">
                     <div class="price">${i.price} ₽</div>
-                    <button class="btn-add" onclick="event.stopPropagation(); add('${i.name.replace(/'/g,"")}', ${i.price})">+</button>
+                    <button class="btn-add">+</button>
                 </div>
             </div>
         `).join('');
     }
 
-    function add(name, price) {
-        cart[name] = cart[name] ? {p:price, q:cart[name].q+1} : {p:price, q:1};
-        localStorage.setItem('thai_cart', JSON.stringify(cart));
-        tg.HapticFeedback.impactOccurred('light');
-        updateMainBtn();
-    }
-
-    function updateMainBtn() {
-        const count = Object.values(cart).reduce((a,b)=>a+b.q, 0);
-        if(count > 0) {
-            const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
-            const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-            if(isCheck) tg.MainButton.setText("ПОДТВЕРДИТЬ");
-            else if(isCart) tg.MainButton.setText("К ОФОРМЛЕНИЮ");
-            else tg.MainButton.setText(`В КОРЗИНУ (${count})`);
-            tg.MainButton.show();
-        } else tg.MainButton.hide();
-    }
-
-    tg.onEvent('mainButtonClicked', () => {
-        const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
-        const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-        if(!isCart && !isCheck) showCart();
-        else if(isCart) showScreen('screen-checkout');
-        else send();
-    });
-
-    function showCart() {
-        showScreen('screen-cart');
-        const list = document.getElementById('cart-items');
-        let total = 0;
-        const entries = Object.entries(cart);
-        list.innerHTML = entries.map(([n, i]) => {
-            total += i.p * i.q;
-            return `
-            <div class="cart-item">
-                <div><b>${n}</b><br><small>${i.p} ₽</small></div>
-                <div class="qty-btns">
-                    <button class="btn-q" onclick="change('${n.replace(/'/g,"\\'")}',-1)">-</button>
-                    <span>${i.q}</span>
-                    <button class="btn-q" onclick="change('${n.replace(/'/g,"\\'")}',1)">+</button>
-                </div>
-            </div>`;
-        }).join('');
-        document.getElementById('total').innerText = 'Итого: ' + total + ' ₽';
-    }
-
-    function change(n, d) {
-        cart[n].q += d; if(cart[n].q <= 0) delete cart[n];
-        localStorage.setItem('thai_cart', JSON.stringify(cart));
-        showCart(); updateMainBtn();
-    }
-
-    function send() {
-        const f = document.getElementById('fio').value, p = document.getElementById('phone').value, a = document.getElementById('addr').value;
-        if(!f || !p || !a) return tg.showAlert('Заполните данные!');
-        tg.sendData(JSON.stringify({products: cart, customer: {fio:f, phone:p, addr:a}}));
-    }
-
     function showScreen(id) {
-        document.querySelectorAll('.container').forEach(s => s.classList.add('hidden'));
+        document.getElementById('screen-categories').classList.add('hidden');
+        document.getElementById('screen-products').classList.add('hidden');
         document.getElementById(id).classList.remove('hidden');
-        window.scrollTo(0,0); updateMainBtn();
     }
-    
-    function goBack() { showScreen(currentCat ? 'screen-products' : 'screen-categories'); }
 
     load();
 </script>
