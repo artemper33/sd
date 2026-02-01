@@ -144,4 +144,36 @@
                 <div class="qty-btns">
                     <button class="btn-q" onclick="change('${n}',-1)">-</button>
                     <span>${i.q}</span>
-                    <button class="btn-q" onclick
+                    <button class="btn-q" onclick="change('${n}',1)">+</button>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('total').innerText = 'Итого: ' + total + ' ₽';
+        updateMainBtn();
+    }
+
+    function change(n, d) {
+        cart[n].q += d;
+        if(cart[n].q <= 0) delete cart[n];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        showCart();
+    }
+
+    function send() {
+        const f = document.getElementById('fio').value, p = document.getElementById('phone').value, a = document.getElementById('addr').value;
+        if(!f || !p || !a) return tg.showAlert('Заполните данные');
+        tg.sendData(JSON.stringify({products: cart, customer: {fio:f, phone:p, addr:a}}));
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.container').forEach(s => s.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        updateMainBtn();
+    }
+    
+    function goBack() { showScreen(currentCat ? 'screen-products' : 'screen-categories'); }
+
+    load();
+</script>
+</body>
+</html>
