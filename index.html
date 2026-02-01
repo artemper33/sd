@@ -7,124 +7,174 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #f8f5f2;
+            --bg-color: #f4f1ee; /* Мягкий бежевый фон */
             --card-bg: #ffffff;
-            --text-main: #2d3436;
-            --accent-green: #4b6a51;
+            --text-main: #1a1a1a;
+            --text-muted: #7f8c8d;
+            --accent-green: #4b6a51; /* Твой фирменный зеленый */
             --accent-light: #e8f0e9;
+            --radius: 30px;
+            --shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
         body {
-            font-family: -apple-system, system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0; padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container { padding: 20px 16px; box-sizing: border-box; min-height: 100vh; }
+        .container { 
+            padding: 24px 16px; 
+            max-width: 600px; 
+            margin: 0 auto;
+            box-sizing: border-box; 
+            min-height: 100vh;
+        }
+        
         .hidden { display: none !important; }
 
-        h2 { font-size: 22px; font-weight: 700; margin: 0 0 20px 0; }
+        h2 { 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin: 0 0 24px 0; 
+            letter-spacing: -0.5px;
+        }
 
-        /* КАТЕГОРИИ */
-        .categories-grid {
+        /* СЕТКА ТОВАРОВ И КАТЕГОРИЙ */
+        .categories-grid, .products-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
 
-        .category-card {
+        /* СТИЛЬ КАРТОЧКИ */
+        .product-card, .category-card {
             background: var(--card-bg);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.04);
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .category-card:active { transform: scale(0.96); }
-
-        .category-card img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            background: #eee;
-        }
-
-        .category-info {
+            border-radius: var(--radius);
             padding: 12px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        /* ТОВАРЫ */
-        .products-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .product-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 12px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.03);
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: transform 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.8);
             display: flex;
             flex-direction: column;
+            cursor: pointer;
         }
 
-        .product-card img {
+        .product-card:active, .category-card:active { transform: scale(0.96); }
+
+        /* Контейнер для фото (квадратный) */
+        .image-wrapper {
+            position: relative;
             width: 100%;
-            height: 110px;
-            object-fit: contain;
-            border-radius: 12px;
-            margin-bottom: 8px;
-        }
-
-        .product-title {
-            font-size: 13px;
-            font-weight: 600;
-            height: 32px;
+            padding-top: 100%; 
+            background: #fdfcfb;
+            border-radius: calc(var(--radius) - 10px);
             overflow: hidden;
-            line-height: 1.2;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
         }
 
-        .price { color: var(--accent-green); font-weight: 800; font-size: 16px; margin-bottom: 10px; }
+        .image-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+        }
 
+        .badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--accent-green);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .product-title, .category-info {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin: 0 4px 8px 4px;
+            min-height: 36px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px 4px 4px;
+            margin-top: auto;
+        }
+
+        .price { 
+            font-weight: 800; 
+            font-size: 17px; 
+            color: var(--text-main);
+        }
+
+        /* КНОПКА ДОБАВЛЕНИЯ (КРУГЛАЯ) */
         .btn-add {
             background: var(--accent-green);
             color: #fff;
             border: none;
-            padding: 10px;
-            border-radius: 12px;
-            font-weight: 700;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(75, 106, 81, 0.2);
         }
 
-        .back-btn { color: var(--accent-green); font-weight: 700; margin-bottom: 15px; cursor: pointer; }
+        .back-btn { 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-muted); 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            cursor: pointer; 
+        }
 
+        /* ОФОРМЛЕНИЕ КОРЗИНЫ */
         .cart-item {
-            background: white; border-radius: 18px; padding: 14px; margin-bottom: 10px;
+            background: white; border-radius: 20px; padding: 16px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--shadow);
         }
 
-        .qty-btns { display: flex; align-items: center; gap: 10px; background: var(--accent-light); padding: 4px; border-radius: 10px; }
-        .btn-q { width: 28px; height: 28px; border-radius: 8px; border: none; background: white; font-weight: bold; cursor: pointer; }
+        .qty-btns { display: flex; align-items: center; gap: 12px; background: var(--accent-light); padding: 6px; border-radius: 12px; }
+        .btn-q { width: 30px; height: 30px; border-radius: 8px; border: none; background: white; font-weight: bold; cursor: pointer; }
 
         input {
-            width: 100%; padding: 14px; margin-bottom: 12px;
-            border-radius: 14px; border: 1px solid #ddd;
+            width: 100%; padding: 16px; margin-bottom: 12px;
+            border-radius: 18px; border: 1px solid #eee;
             font-size: 16px; box-sizing: border-box;
+            box-shadow: var(--shadow);
         }
 
-        #debug-info { color: red; font-size: 10px; margin-top: 20px; }
+        #debug-info { color: #e74c3c; font-size: 12px; margin-top: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="screen-categories" class="container">
-    <h2>Категории товаров</h2>
+    <h2>Каталог товаров</h2>
     <div id="categories-list" class="categories-grid"></div>
     <div id="debug-info"></div>
 </div>
@@ -139,25 +189,25 @@
     <div class="back-btn" onclick="goBack()">← В магазин</div>
     <h2>Корзина</h2>
     <div id="cart-items"></div>
-    <div id="total" style="text-align:right; font-weight:bold; font-size:20px; margin-top:15px; color: var(--accent-green);"></div>
+    <div id="total" style="text-align:right; font-weight:bold; font-size:22px; margin-top:20px; color: var(--accent-green);"></div>
 </div>
 
 <div id="screen-checkout" class="container hidden">
     <div class="back-btn" onclick="showScreen('screen-cart')">← Назад</div>
     <h2>Оформление</h2>
-    <input type="text" id="fio" placeholder="ФИО">
-    <input type="tel" id="phone" placeholder="Телефон">
+    <input type="text" id="fio" placeholder="Ваше имя">
+    <input type="tel" id="phone" placeholder="Номер телефона">
     <input type="text" id="addr" placeholder="Адрес доставки">
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
+    
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
     
     let allItems = [], cart = {}, currentCat = '';
 
-    // БЕЗОПАСНЫЙ ПАРСЕР
     function parseCSV(text) {
         const rows = [];
         const lines = text.split(/\r?\n/);
@@ -184,11 +234,9 @@
             
             allItems = rows.map(r => {
                 if (r.length < 3) return null;
-                // Ищем цену: берем колонку 2 и очищаем от текста
                 let rawPrice = r[2] ? r[2].replace(/[^\d]/g, '') : "0";
                 let price = parseInt(rawPrice);
                 
-                // Если цена в 2 колонке не нашлась, ищем в других
                 if (isNaN(price) || price === 0) {
                     for(let i=3; i<r.length; i++) {
                         let p = parseInt(r[i].replace(/[^\d]/g, ''));
@@ -206,7 +254,7 @@
             }).filter(i => i && i.cat && i.name && i.price > 0);
 
             if (allItems.length === 0) {
-                document.getElementById('debug-info').innerText = "Данные не распознаны. Проверьте CSV.";
+                document.getElementById('debug-info').innerText = "Данные не найдены. Проверьте таблицу.";
             } else {
                 renderCats();
             }
@@ -214,7 +262,7 @@
             const saved = localStorage.getItem('thai_cart');
             if(saved) { cart = JSON.parse(saved); updateMainBtn(); }
         } catch(e) { 
-            document.getElementById('debug-info').innerText = "Ошибка загрузки: " + e.message;
+            document.getElementById('debug-info').innerText = "Ошибка: " + e.message;
         }
     }
 
@@ -223,8 +271,11 @@
         const cats = [...new Set(allItems.map(i => i.cat))];
         list.innerHTML = cats.map(cat => {
             const item = allItems.find(i => i.cat === cat);
-            return `<div class="category-card" onclick="showProds('${cat.replace(/'/g, "\\'")}')">
-                <img src="${item.cImg}" onerror="this.src='https://via.placeholder.com/150?text=Thai+Cosmetics'">
+            return `
+            <div class="category-card" onclick="showProds('${cat.replace(/'/g, "\\'")}')">
+                <div class="image-wrapper">
+                    <img src="${item.cImg}" onerror="this.src='https://via.placeholder.com/150?text=Category'">
+                </div>
                 <div class="category-info">${cat}</div>
             </div>`;
         }).join('');
@@ -237,10 +288,15 @@
         const list = document.getElementById('products-list');
         list.innerHTML = allItems.filter(i => i.cat === cat).map(i => `
             <div class="product-card">
-                <img src="${i.img}" onerror="this.src='https://via.placeholder.com/150?text=Product'">
+                <div class="badge">Sale</div>
+                <div class="image-wrapper">
+                    <img src="${i.img}" onerror="this.src='https://via.placeholder.com/150?text=Product'">
+                </div>
                 <div class="product-title">${i.name}</div>
-                <div class="price">${i.price} ₽</div>
-                <button class="btn-add" onclick="add('${i.name.replace(/'/g,"")}', ${i.price})">В корзину</button>
+                <div class="price-row">
+                    <div class="price">${i.price} ₽</div>
+                    <button class="btn-add" onclick="event.stopPropagation(); add('${i.name.replace(/'/g,"")}', ${i.price})">+</button>
+                </div>
             </div>
         `).join('');
     }
@@ -257,8 +313,8 @@
         if(count > 0) {
             const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
             const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-            if(isCheck) tg.MainButton.setText("ПОДТВЕРДИТЬ ЗАКАЗ");
-            else if(isCart) tg.MainButton.setText("К ОФОРМЛЕНИЮ");
+            if(isCheck) tg.MainButton.setText("ОФОРМИТЬ ЗАКАЗ");
+            else if(isCart) tg.MainButton.setText("ДАЛЕЕ");
             else tg.MainButton.setText(`КОРЗИНА (${count})`);
             tg.MainButton.setParams({color: "#4b6a51", text_color: "#ffffff"});
             tg.MainButton.show();
@@ -279,12 +335,13 @@
         let total = 0;
         const entries = Object.entries(cart);
         if (entries.length === 0) {
-            list.innerHTML = "<p>Корзина пуста</p>";
+            list.innerHTML = "<p style='text-align:center; color:gray;'>Ваша корзина пуста</p>";
         } else {
             list.innerHTML = entries.map(([n, i]) => {
                 total += i.p * i.q;
-                return `<div class="cart-item">
-                    <div><b>${n}</b><br><small>${i.p} ₽</small></div>
+                return `
+                <div class="cart-item">
+                    <div><b>${n}</b><br><small style="color:var(--accent-green)">${i.p} ₽</small></div>
                     <div class="qty-btns">
                         <button class="btn-q" onclick="change('${n.replace(/'/g,"\\'")}',-1)">-</button>
                         <span>${i.q}</span>
@@ -305,7 +362,7 @@
 
     function send() {
         const f = document.getElementById('fio').value, p = document.getElementById('phone').value, a = document.getElementById('addr').value;
-        if(!f || !p || !a) return tg.showAlert('Заполните все данные!');
+        if(!f || !p || !a) return tg.showAlert('Пожалуйста, заполните все поля доставки!');
         tg.sendData(JSON.stringify({products: cart, customer: {fio:f, phone:p, addr:a}}));
     }
 
