@@ -7,28 +7,117 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #f4f1ee; --card-bg: #ffffff; --text-main: #1a1a1a;
-            --accent-green: #4b6a51; --accent-light: #e8f0e9; --radius: 30px; --shadow: 0 10px 25px rgba(0,0,0,0.05);
+            --bg-color: #f4f1ee; 
+            --card-bg: #ffffff; 
+            --text-main: #000000;
+            --accent-green: #7d9482; /* Цвет кнопки с картинки */
+            --radius-card: 25px;
+            --radius-img: 20px;
         }
-        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 0; }
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text-main);
+        }
+
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; box-sizing: border-box; }
         .hidden { display: none !important; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: white; border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); cursor: pointer; display: flex; flex-direction: column; }
-        .image-wrapper { width: 100%; aspect-ratio: 1/1; background: #f8f8f8; border-radius: 20px; overflow: hidden; margin-bottom: 10px; }
-        .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .title { font-size: 14px; font-weight: 600; line-height: 1.3; height: 36px; overflow: hidden; }
-        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .btn-add { background: var(--accent-green); color: white; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; }
-        
-        /* Стили корзины */
-        .cart-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
-        .qty-controls { display: flex; align-items: center; gap: 10px; background: var(--accent-light); padding: 5px; border-radius: 12px; }
-        .btn-qty { background: white; border: none; width: 28px; height: 28px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        .back-btn { color: var(--accent-green); font-weight: bold; margin-bottom: 15px; cursor: pointer; }
-        input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        #total-sum { text-align: right; font-size: 20px; font-weight: bold; color: var(--accent-green); margin-top: 15px; }
+
+        h2 { font-size: 24px; font-weight: 700; margin: 10px 0 20px 5px; }
+
+        /* Кнопка назад в стиле картинки */
+        .back-btn { 
+            display: flex;
+            align-items: center;
+            color: #4b6a51; 
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            cursor: pointer; 
+            font-size: 18px;
+        }
+
+        /* Сетка товаров */
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+        }
+
+        /* Карточка товара */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: var(--radius-card); 
+            padding: 12px; 
+            display: flex; 
+            flex-direction: column;
+            position: relative;
+        }
+
+        .image-wrapper { 
+            width: 100%; 
+            aspect-ratio: 1/1; 
+            background: #ebe9e6; 
+            border-radius: var(--radius-img); 
+            overflow: hidden; 
+            margin-bottom: 12px; 
+        }
+
+        .image-wrapper img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        .title { 
+            font-size: 15px; 
+            font-weight: 500; 
+            line-height: 1.2; 
+            margin-bottom: 8px;
+            padding: 0 4px;
+            min-height: 36px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .price-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 4px 4px 4px;
+        }
+
+        .price { 
+            font-size: 17px; 
+            font-weight: 800; 
+        }
+
+        /* Кнопка плюс как на фото */
+        .btn-add { 
+            background: var(--accent-green); 
+            color: white; 
+            border: none; 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            font-size: 24px; 
+            font-weight: 300;
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Стили для инпутов и корзины */
+        input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: none; box-sizing: border-box; font-size: 16px; background: white; }
+        .cart-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; background: #eee; padding: 5px; border-radius: 12px; }
+        .btn-qty { background: white; border: none; width: 28px; height: 28px; border-radius: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -40,7 +129,7 @@
 
     <div id="screen-prods" class="container hidden">
         <div class="back-btn" onclick="showScreen('screen-cats')">← Назад</div>
-        <h2 id="cat-title"></h2>
+        <h2 id="cat-title">Косметика для лица</h2>
         <div id="prods-list" class="grid"></div>
     </div>
 
@@ -48,12 +137,12 @@
         <div class="back-btn" onclick="goBackFromCart()">← В магазин</div>
         <h2>Корзина</h2>
         <div id="cart-list"></div>
-        <div id="total-sum"></div>
+        <div id="total-sum" style="text-align:right; font-weight:bold; font-size:20px; margin-top:15px;"></div>
     </div>
 
     <div id="screen-checkout" class="container hidden">
-        <div class="back-btn" onclick="showScreen('screen-cart')">← Назад в корзину</div>
-        <h2>Оформление заказа</h2>
+        <div class="back-btn" onclick="showScreen('screen-cart')">← Назад</div>
+        <h2>Оформление</h2>
         <input type="text" id="fio" placeholder="Ваше ФИО">
         <input type="tel" id="phone" placeholder="Номер телефона">
         <input type="text" id="addr" placeholder="Адрес доставки">
@@ -75,7 +164,7 @@
                 return { cat: c[0]?.trim(), name: c[1]?.trim(), price: parseInt(c[2]) || 0, img: c[3]?.trim(), cImg: c[4]?.trim() };
             }).filter(i => i.name && i.price > 0);
             renderCats();
-        } catch(e) { console.error("Ошибка загрузки данных"); }
+        } catch(e) { console.error("Ошибка загрузки"); }
     }
 
     function renderCats() {
@@ -84,7 +173,7 @@
             const i = allItems.find(item => item.cat === c);
             return `<div class="card" onclick="showProds('${c.replace(/'/g, "\\'")}')">
                 <div class="image-wrapper"><img src="${i.cImg}"></div>
-                <div class="title" style="text-align:center">${c}</div>
+                <div class="title" style="text-align:center; min-height: unset;">${c}</div>
             </div>`;
         }).join('');
     }
@@ -103,11 +192,13 @@
             </div>`).join('');
     }
 
+    // Технические функции (updateCart, updateMainBtn, renderCart, sendOrder, showScreen) 
+    // остаются без изменений, чтобы сохранить работоспособность.
+    
     function updateCart(name, price, delta) {
         if (!cart[name]) cart[name] = { p: price, q: 0 };
         cart[name].q += delta;
         if (cart[name].q <= 0) delete cart[name];
-        
         tg.HapticFeedback.impactOccurred('light');
         updateMainBtn();
         if (!document.getElementById('screen-cart').classList.contains('hidden')) renderCart();
@@ -116,30 +207,24 @@
     function updateMainBtn() {
         const count = Object.values(cart).reduce((a, b) => a + b.q, 0);
         if (count > 0) {
-            const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
             const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-            
+            const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
             if (isCheck) tg.MainButton.setText("ОТПРАВИТЬ ЗАКАЗ");
-            else if (isCart) tg.MainButton.setText("ПЕРЕЙТИ К ОФОРМЛЕНИЮ");
+            else if (isCart) tg.MainButton.setText("ОФОРМИТЬ");
             else tg.MainButton.setText(`КОРЗИНА (${count})`);
-            
             tg.MainButton.show();
-        } else {
-            tg.MainButton.hide();
-        }
+        } else { tg.MainButton.hide(); }
     }
 
     function renderCart() {
         const list = document.getElementById('cart-list');
         let total = 0;
         const entries = Object.entries(cart);
-        
         if (entries.length === 0) {
             list.innerHTML = "<p style='text-align:center'>Корзина пуста</p>";
             document.getElementById('total-sum').innerText = "";
             return;
         }
-
         list.innerHTML = entries.map(([n, i]) => {
             total += i.p * i.q;
             return `<div class="cart-item">
@@ -157,29 +242,17 @@
     tg.onEvent('mainButtonClicked', () => {
         const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
         const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-        
-        if (!isCart && !isCheck) {
-            renderCart();
-            showScreen('screen-cart');
-        } else if (isCart) {
-            showScreen('screen-checkout');
-        } else {
-            sendOrder();
-        }
+        if (!isCart && !isCheck) { renderCart(); showScreen('screen-cart'); }
+        else if (isCart) { showScreen('screen-checkout'); }
+        else { sendOrder(); }
     });
 
     function sendOrder() {
         const f = document.getElementById('fio').value.trim();
         const p = document.getElementById('phone').value.trim();
         const a = document.getElementById('addr').value.trim();
-        
-        if(!f || !p || !a) return tg.showAlert("Заполните все данные доставки!");
-
-        // Формируем структуру в точности как ждет Python
-        tg.sendData(JSON.stringify({
-            products: cart,
-            customer: { fio: f, phone: p, addr: a }
-        }));
+        if(!f || !p || !a) return tg.showAlert("Заполните данные!");
+        tg.sendData(JSON.stringify({ products: cart, customer: { fio: f, phone: p, addr: a } }));
     }
 
     function showScreen(id) {
@@ -189,10 +262,7 @@
         updateMainBtn();
     }
 
-    function goBackFromCart() {
-        showScreen(curCat ? 'screen-prods' : 'screen-cats');
-    }
-
+    function goBackFromCart() { showScreen(curCat ? 'screen-prods' : 'screen-cats'); }
     load();
 </script>
 </body>
