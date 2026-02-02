@@ -134,7 +134,7 @@
     </div>
 
     <div id="screen-item" class="product-page hidden">
-        <div class="back-link" onclick="showScreen('screen-prods')">← Назад</div>
+        <div class="back-link" onclick="handleProductBack()">← Назад</div>
         <div class="product-img-card"><img id="item-img" src=""></div>
         <div class="info-card">
             <h2 id="item-title" style="margin:0; font-size: 20px;"></h2>
@@ -169,6 +169,8 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
     let allItems = [], cart = {}, curCat = '';
+    let isSearchMode = false; // Флаг для отслеживания режима поиска
+
     const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
 
     function parseCSVRow(row) {
@@ -217,12 +219,14 @@
         const title = document.getElementById('main-title');
 
         if (query.length < 2) {
+            isSearchMode = false;
             catsList.classList.remove('hidden');
             searchResults.classList.add('hidden');
             title.innerText = "Каталог";
             return;
         }
 
+        isSearchMode = true;
         const filtered = allItems.filter(i => i.name.toLowerCase().includes(query) || i.cat.toLowerCase().includes(query));
         catsList.classList.add('hidden');
         searchResults.classList.remove('hidden');
@@ -238,6 +242,7 @@
     }
 
     function showProds(c) {
+        isSearchMode = false;
         curCat = c; showScreen('screen-prods');
         document.getElementById('cat-title').innerText = c;
         document.getElementById('prods-list').innerHTML = allItems.filter(i => i.cat === c).map(i => `
@@ -262,6 +267,15 @@
         document.getElementById('item-desc').innerText = i.desc;
         document.getElementById('add-btn-page').onclick = () => { updateCart(i.name, i.price, 1); tg.showAlert('Добавлено!'); };
         showScreen('screen-item');
+    }
+
+    // НОВАЯ ФУНКЦИЯ: Умный возврат со страницы товара
+    function handleProductBack() {
+        if (isSearchMode) {
+            showScreen('screen-cats'); // Возвращаемся в результаты поиска
+        } else {
+            showScreen('screen-prods'); // Возвращаемся в категорию
+        }
     }
 
     function updateCart(name, price, delta) {
@@ -330,7 +344,7 @@
         updateMainBtn();
     }
 
-    function goBackFromCart() { showScreen(curCat ? 'screen-prods' : 'screen-cats'); }
+    function goBackFromCart() { showScreen(isSearchMode ? 'screen-cats' : (curCat ? 'screen-prods' : 'screen-cats')); }
     load();
 </script>
 </body>
