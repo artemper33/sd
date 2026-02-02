@@ -27,7 +27,6 @@
         .container { padding: 16px; width: 100%; max-width: 600px; margin: 0 auto; }
         .hidden { display: none !important; }
 
-        /* Сетка */
         .grid { 
             display: grid; grid-template-columns: repeat(2, 1fr); 
             gap: 12px; grid-auto-rows: 1fr; width: 100%;
@@ -61,7 +60,6 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Страница товара (Full Page) */
         .product-page { background: white; min-height: 100vh; position: relative; z-index: 100; }
         .product-img-big { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 0 0 40px 40px; }
         .product-info { padding: 25px; margin-top: -30px; background: white; border-radius: 40px 40px 0 0; }
@@ -75,10 +73,8 @@
         }
 
         .back-btn { padding: 10px; color: #4b6a51; font-weight: 600; cursor: pointer; display: inline-block; }
-
-        /* Стили корзины */
-        .cart-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; background: white; }
+        .cart-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; background: white; outline: none; }
     </style>
 </head>
 <body>
@@ -209,11 +205,15 @@
         if (count > 0) {
             const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
             const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
+            
             if (isCheck) tg.MainButton.setText("ОТПРАВИТЬ ЗАКАЗ");
             else if (isCart) tg.MainButton.setText("К ОФОРМЛЕНИЮ");
             else tg.MainButton.setText(`КОРЗИНА (${count})`);
+            
             tg.MainButton.show();
-        } else tg.MainButton.hide();
+        } else {
+            tg.MainButton.hide();
+        }
     }
 
     function renderCart() {
@@ -229,22 +229,44 @@
             total += i.p * i.q;
             return `<div class="cart-item">
                 <div style="flex:1"><b>${n}</b><br><small>${i.p} ₽</small></div>
-                <div style="font-weight:bold">${i.q} шт.</div>
-                <button onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, -1)" style="margin-left:10px; border:none; background:#eee; border-radius:5px; width:25px;">-</button>
+                <div style="font-weight:bold; margin: 0 10px;">${i.q} шт.</div>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, -1)" style="border:none; background:#eee; border-radius:5px; width:30px; height:30px;">-</button>
+                    <button onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, 1)" style="border:none; background:#eee; border-radius:5px; width:30px; height:30px;">+</button>
+                </div>
             </div>`;
         }).join('');
         document.getElementById('total-sum').innerText = `Итого: ${total} ₽`;
     }
 
+    // ЛОГИКА ГЛАВНОЙ КНОПКИ
     tg.onEvent('mainButtonClicked', () => {
         const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
         const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
-        if (!isCart && !isCheck) { renderCart(); showScreen('screen-cart'); }
-        else if (isCart) { showScreen('screen-checkout'); }
-        else { 
-            const f = document.getElementById('fio').value;
-            if(!f) return tg.showAlert("Заполните ФИО!");
-            tg.sendData(JSON.stringify({cart, user: f})); 
+
+        if (!isCart && !isCheck) {
+            renderCart();
+            showScreen('screen-cart');
+        } 
+        else if (isCart) {
+            showScreen('screen-checkout');
+        } 
+        else if (isCheck) {
+            const f = document.getElementById('fio').value.trim();
+            const p = document.getElementById('phone').value.trim();
+            const a = document.getElementById('addr').value.trim();
+
+            if(!f || !p) {
+                return tg.showAlert("Заполните ФИО и Телефон!");
+            }
+
+            // СОБИРАЕМ ДАННЫЕ В ФОРМАТЕ ДЛЯ ПАЙТОНА
+            const finalData = {
+                customer: { fio: f, phone: p, addr: a },
+                products: cart
+            };
+
+            tg.sendData(JSON.stringify(finalData));
         }
     });
 
