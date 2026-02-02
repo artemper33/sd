@@ -73,7 +73,7 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Страница товара (как на фото 2) */
+        /* Страница товара */
         .product-page { padding: 16px; max-width: 600px; margin: 0 auto; }
         .product-img-card {
             background: white; border-radius: var(--radius-main);
@@ -92,7 +92,9 @@
 
         .description-card {
             background: white; border-radius: 20px; padding: 20px;
-            line-height: 1.6; font-size: 15px; color: #333; white-space: pre-line;
+            line-height: 1.6; font-size: 15px; color: #333; 
+            white-space: pre-wrap; /* ВАЖНО для отображения переносов */
+            word-wrap: break-word;
         }
 
         .back-link {
@@ -169,33 +171,47 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
     let allItems = [], cart = {}, curCat = '';
-    let isSearchMode = false; // Флаг для отслеживания режима поиска
+    let isSearchMode = false;
 
     const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGfB1K76W8TlRCOzb-J-r0abekSgiiFJvBbzEr51PaKUu-stO_TmAHUQGUQ2rhlO0_gBmue4D0ioLH/pub?output=csv';
 
-    function parseCSVRow(row) {
-        const result = []; let current = ''; let inQuotes = false;
-        for (let i = 0; i < row.length; i++) {
-            let char = row[i];
-            if (char === '"') inQuotes = !inQuotes;
-            else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-            else current += char;
+    // УЛУЧШЕННЫЙ ПАРСЕР CSV (обрабатывает многострочный текст в кавычках)
+    function parseFullCSV(text) {
+        const result = [];
+        let row = [];
+        let col = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            let char = text[i];
+            let next = text[i+1];
+
+            if (char === '"' && inQuotes && next === '"') { col += '"'; i++; } 
+            else if (char === '"') { inQuotes = !inQuotes; } 
+            else if (char === ',' && !inQuotes) { row.push(col.trim()); col = ''; } 
+            else if ((char === '\n' || char === '\r') && !inQuotes) {
+                if (col !== '' || row.length > 0) {
+                    row.push(col.trim());
+                    result.push(row);
+                    row = []; col = '';
+                }
+            } else { col += char; }
         }
-        result.push(current.trim()); return result;
+        if (col !== '' || row.length > 0) { row.push(col.trim()); result.push(row); }
+        return result;
     }
 
     async function load() {
         try {
             const res = await fetch(CSV + '&t=' + Date.now());
             const text = await res.text();
-            const rows = text.split(/\r?\n/).filter(line => line.trim() !== '').slice(1);
-            allItems = rows.map(r => {
-                const c = parseCSVRow(r);
-                return { 
-                    cat: c[0], name: c[1], price: parseInt(c[2]) || 0, 
-                    img: c[3], cImg: c[4], desc: c[5] || "Описание скоро появится."
-                };
-            }).filter(i => i.name && i.price > 0);
+            const data = parseFullCSV(text).slice(1); // Пропускаем шапку
+            
+            allItems = data.map(c => ({
+                cat: c[0], name: c[1], price: parseInt(c[2]) || 0, 
+                img: c[3], cImg: c[4], desc: c[5] || ""
+            })).filter(i => i.name && i.price > 0);
+            
             renderCats();
         } catch(e) { console.error("Ошибка загрузки"); }
     }
@@ -264,18 +280,17 @@
         document.getElementById('item-price').innerText = i.price + ' ₽';
         document.getElementById('item-price-btn').innerText = i.price + ' ₽';
         document.getElementById('item-old-price').innerText = Math.floor(i.price * 1.25) + ' ₽';
+        
+        // Вставляем описание с сохранением переносов строк
         document.getElementById('item-desc').innerText = i.desc;
+        
         document.getElementById('add-btn-page').onclick = () => { updateCart(i.name, i.price, 1); tg.showAlert('Добавлено!'); };
         showScreen('screen-item');
     }
 
-    // НОВАЯ ФУНКЦИЯ: Умный возврат со страницы товара
     function handleProductBack() {
-        if (isSearchMode) {
-            showScreen('screen-cats'); // Возвращаемся в результаты поиска
-        } else {
-            showScreen('screen-prods'); // Возвращаемся в категорию
-        }
+        if (isSearchMode) showScreen('screen-cats');
+        else showScreen('screen-prods');
     }
 
     function updateCart(name, price, delta) {
