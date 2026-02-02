@@ -73,7 +73,19 @@
         }
 
         .back-btn { padding: 10px; color: #4b6a51; font-weight: 600; cursor: pointer; display: inline-block; }
-        .cart-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        
+        /* Стили корзины с кнопками управления */
+        .cart-item { 
+            background: white; padding: 15px; border-radius: 20px; 
+            margin-bottom: 10px; display: flex; justify-content: space-between; 
+            align-items: center; border-bottom: 1px solid #f0f0f0; 
+        }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-qty { 
+            border: none; background: #f0f0f0; border-radius: 8px; 
+            width: 30px; height: 30px; font-weight: bold; font-size: 18px; 
+        }
+
         input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; background: white; outline: none; }
     </style>
 </head>
@@ -197,6 +209,7 @@
         if (cart[name].q <= 0) delete cart[name];
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         updateMainBtn();
+        // Если мы на экране корзины, сразу перерисовываем её
         if (!document.getElementById('screen-cart').classList.contains('hidden')) renderCart();
     }
 
@@ -220,26 +233,29 @@
         const list = document.getElementById('cart-list');
         let total = 0;
         const entries = Object.entries(cart);
+        
         if (entries.length === 0) {
-            list.innerHTML = "<p style='text-align:center'>Корзина пуста</p>";
+            list.innerHTML = "<p style='text-align:center; padding: 20px;'>Корзина пуста</p>";
             document.getElementById('total-sum').innerText = "";
+            // Если в корзине стало 0 товаров, уходим назад
+            setTimeout(() => { if(entries.length === 0) goBackFromCart(); }, 1000);
             return;
         }
+
         list.innerHTML = entries.map(([n, i]) => {
             total += i.p * i.q;
             return `<div class="cart-item">
                 <div style="flex:1"><b>${n}</b><br><small>${i.p} ₽</small></div>
-                <div style="font-weight:bold; margin: 0 10px;">${i.q} шт.</div>
-                <div style="display:flex; gap:5px;">
-                    <button onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, -1)" style="border:none; background:#eee; border-radius:5px; width:30px; height:30px;">-</button>
-                    <button onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, 1)" style="border:none; background:#eee; border-radius:5px; width:30px; height:30px;">+</button>
+                <div class="qty-controls">
+                    <button class="btn-qty" onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, -1)">-</button>
+                    <span style="font-weight:bold; min-width:20px; text-align:center;">${i.q}</span>
+                    <button class="btn-qty" onclick="updateCart('${n.replace(/'/g, "\\'")}', ${i.p}, 1)">+</button>
                 </div>
             </div>`;
         }).join('');
         document.getElementById('total-sum').innerText = `Итого: ${total} ₽`;
     }
 
-    // ЛОГИКА ГЛАВНОЙ КНОПКИ
     tg.onEvent('mainButtonClicked', () => {
         const isCart = !document.getElementById('screen-cart').classList.contains('hidden');
         const isCheck = !document.getElementById('screen-checkout').classList.contains('hidden');
@@ -260,7 +276,6 @@
                 return tg.showAlert("Заполните ФИО и Телефон!");
             }
 
-            // СОБИРАЕМ ДАННЫЕ В ФОРМАТЕ ДЛЯ ПАЙТОНА
             const finalData = {
                 customer: { fio: f, phone: p, addr: a },
                 products: cart
