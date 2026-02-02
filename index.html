@@ -280,11 +280,11 @@
         document.getElementById('item-price').innerText = i.price + ' ₽';
         document.getElementById('item-price-btn').innerText = i.price + ' ₽';
         document.getElementById('item-old-price').innerText = Math.floor(i.price * 1.25) + ' ₽';
-        
-        // Вставляем описание с сохранением переносов строк
         document.getElementById('item-desc').innerText = i.desc;
         
-        document.getElementById('add-btn-page').onclick = () => { updateCart(i.name, i.price, 1); tg.showAlert('Добавлено!'); };
+        document.getElementById('add-btn-page').onclick = () => { 
+            updateCart(i.name, i.price, 1); 
+        };
         showScreen('screen-item');
     }
 
@@ -364,4 +364,5 @@
 </script>
 </body>
 </html>
+
 
